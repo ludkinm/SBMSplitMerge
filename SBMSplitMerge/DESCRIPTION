@@ -1,0 +1,9 @@
+Package: SBMSplitMerge
+Title: Inference for the restricted Stochastic Block Model
+Version: 0.1
+Authors@R: person("Matthew", "Ludkin", email = "m.ludkin1@lancaster.ac.uk", role = c("aut", "cre"))
+Description: Perform inference for restricted SBMs using an RJMCMC split-merge sampling scheme or a dirichlet process sampler using refclasses
+Depends: R (>= 3.1.0)
+License: MIT + file LICENSE
+LazyData: true
+RoxygenNote: 6.1.1
