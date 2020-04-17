@@ -2,11 +2,12 @@ Package: SBMSplitMerge
 Title: Inference for a Generalised Stochastic Block Model with a Split Merge Sampler
 Version: 1.1.0
 Authors@R: person("Matthew", "Ludkin", email = "m.ludkin1@lancaster.ac.uk", role = c("aut", "cre"))
-Description: Perform inference for a Generalised SBM using an Reverisible jump MCMC split-merge sampling scheme or a Dirichlet Process sampler.
+Description: Perform inference for a Generalised Stochastic Block Model using an Reversible jump MCMC split-merge sampling scheme or a Dirichlet Process sampler.
 Depends: R (>= 3.1.0)
 License: MIT + file LICENSE
+Language: en-GB
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Imports: ggplot2, reshape2
 Suggests:
     knitr,

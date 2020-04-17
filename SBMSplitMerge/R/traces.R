@@ -62,7 +62,7 @@ paramtrace <- function(theta, truetheta){
 
 #' mean proportion of times two nodes were in the same block under MCMC samples
 #' @param postz output from sampler
-#' @return matrix P with P[i,j] = proportion of times i and j are in the same block under postz
+#' @return matrix P with P[i,j] = proportion of times i and j are in the same block under \code{postz}
 postpairs <- function(postz){
     N <- nrow(postz)
     P <- matrix(0,N,N)
@@ -75,7 +75,7 @@ postpairs <- function(postz){
 #' modal block assignments from MCMC samples
 #' @export
 #' @param postz output from sampler
-#' @return a blocks object with the modal block assignments under postz
+#' @return a blocks object with the modal block assignments under \code{postz}
 modeblocks <- function(postz)
     blocks(apply(postz, 1, function(x) which.max(tabulate(x, max(postz)))))
 

@@ -1,4 +1,4 @@
-#' creat a blocks object
+#' create a blocks object
 #' @param z vector of block labels
 #' @param kappa maximum number of blocks
 #' @return a blocks object
@@ -22,11 +22,11 @@ blocks <- function(z, kappa){
 
 #' create a block-model object
 #' @param gamma parameters for the block model
-#' @param fixkappa bool - is kappa fixed or can it vary
+#' @param fixkappa Logical - is kappa fixed or can it vary
 #' @param rblocks function(n, gamma) samples node memberships from the block model, takes gamma as a parameter
 #' @param logdblocks log density for the number of blocks distribution
 #' @param dcond conditional density for the block assignments
-#' @return a bockmod object
+#' @return a \code{blockmod} object
 #' @export
 blockmod <- function(gamma, fixkappa, rblocks, logdblocks, dcond){
     out <- list(
@@ -42,7 +42,7 @@ blockmod <- function(gamma, fixkappa, rblocks, logdblocks, dcond){
 
 #' plots a block object
 #' @param x a blocks object to plot
-#' @param col colors for the plot
+#' @param col colours for the plot
 #' @param xaxt override \code{image} parameters
 #' @param yaxt override \code{image} parameters
 #' @param xlab override \code{image} parameters
@@ -115,11 +115,11 @@ zmat.blocks <- function(blocks, kappa){
     zmat(blocks$z, kappa)
 }
 
-#' converts the block assignment under sbm to a matrix of block assignments
-#' @param Sbm an sbm object
-#' @return matrix with K rows and a 1 at (k,i) if node i is in block k under the sbm model
-zmat.sbm <- function(Sbm)
-    zmat(Sbm$blocks)
+#' converts the block assignment under \code{SBM} to a matrix of block assignments
+#' @param SBM an \code{sbm} object
+#' @return matrix with K rows and a 1 at (k,i) if node i is in block k under the \code{sbm} model
+zmat.sbm <- function(SBM)
+    zmat(SBM$blocks)
 
 #' density for the block assignments in x
 #' @param x object for dispatch
@@ -129,46 +129,47 @@ dblocks <- function(x, ...)
     UseMethod("dblocks", x)
 
 #' density for the block assignments
-#' @param x an sbm model which contains the block state
-#' @param mod a list containing an element mod$blocks a blockmodel
-#' @param ... additional arguments for dblocks.blocks
-#' @return The density for the block assignments in sbm under mod
+#' @param x an \code{sbm} model which contains the block state
+#' @param mod a list containing an element \code{mod$blocks} a \code{blockmod}
+#' @param ... additional arguments for \code{dblocks.blocks}
+#' @return The density for the block assignments in \code{sbm} under \code{mod}
 #' @export
 dblocks.sbm <- function(x, mod, ...)
     dblocks.blocks(x$blocks, mod$blocks, ...)
 
 #' density for the block assignments
-#' @param x a blocks object containing block assignments
-#' @param blockmod a blockmod object containing a model for the block assignments
-#' @param ... additional arguments for blockmod$logdblocks
-#' @return The density for the block assignments in blocks under blockmod
+#' @param x a \code{blocks} object containing block assignments
+#' @param blockmod a \code{blockmod} object containing a model for the block assignments
+#' @param ... additional arguments for \code{blockmod$logdblocks}
+#' @return The density for the block assignments in \code{x} under \code{blockmod}
 #' @export
 dblocks.blocks <- function(x, blockmod, ...)
     blockmod$logdblocks(x, blockmod$gamma, ...)
 
 #' random block assignment generation
 #' @param n number of nodes
-#' @param BM a blockmod object
+#' @param blockmod a \code{blockmod} object
 #' @param sorted sort the nodes by block assignment for nice plots?
-#' @param ... additional parameters for the BM$rblocks function
+#' @param ... additional parameters for the \code{blockmod$rblocks} function
 #' @return a blocks object
 #' @export
-rblocks <- function(n, BM, sorted=FALSE, ...){
-    z <- BM$rblocks(n, BM$gamma, ...)
+rblocks <- function(n, blockmod, sorted=FALSE, ...){
+    z <- blockmod$rblocks(n, blockmod$gamma, ...)
     if(sorted)
         z <- sort(z)
     blocks(z)
 }
 
-#' Calculate the conditional density for block assignment of node i under the model in BM and block assignments in blocks
-#' @param blocks blocks object
-#' @param BM a blockmod object
+#' @title Conditional Prior
+#' @description Calculate the conditional density for block assignment of node i under the model in \code{blockmod} and block assignments in blocks
+#' @param blocks \code{blocks} object
+#' @param blockmod a \code{blockmod} object
 #' @param i a node index
-#' @param ... additional arguments for blockmodel$dcond
-#' @return conditional density for block assignment of node i under the model in BM and block assignments in blocks
+#' @param ... additional arguments for \code{blockmodel$dcond}
+#' @return conditional density for block assignment of node i under the model in \code{blockmod} and block assignments in blocks
 #' @export
-condprior <- function(blocks, BM, i, ...)
-    BM$dcond(blocks, BM$gamma, i, ...)
+condprior <- function(blocks, blockmod, i, ...)
+    blockmod$dcond(blocks, blockmod$gamma, i, ...)
 
 
 #' Update the block assignment of a node
@@ -178,29 +179,29 @@ updateblock <- function(x,...)
     UseMethod("updateblock")
 
 #' Update the block assignment of a node
-#' @param sbm an sbm object
+#' @param SBM an \code{sbm} object
 #' @param newblock the new block for node i
 #' @param i the node to update
-#' @return new sbm object
-updateblock.sbm <- function(sbm, newblock, i){
-    newblocks <- updateblock(sbm$blocks, newblock,i)
-    sbm(newblocks, sbm$params)
+#' @return new \code{sbm} object
+updateblock.sbm <- function(SBM, newblock, i){
+    newblocks <- updateblock(SBM$blocks, newblock,i)
+    sbm(newblocks, SBM$params)
 }
 
 #' Update the block assignment of a node
-#' @param blocks a blocks object
+#' @param blocks a \code{blocks} object
 #' @param newblock the new block for node i
 #' @param i the node to update
-#' @return new blocks object
+#' @return new \code{blocks} object
 updateblock.blocks <- function(blocks, newblock, i){
     tmp <- blocks$z
     tmp[i] <- newblock
     blocks(tmp)
 }
 
-#' Multionoial block assignment
-#' @param gamma parameter for dirichlet component Dir(gam, gam, .., gam)
-#' @return a block model representing a multinomial(gamma) distribution
+#' Multinomial block assignment
+#' @param gamma parameter for Dirichlet component \code{Dir(gam, gam, .., gam)}
+#' @return a block model representing a \code{Multinomial(gamma)} distribution
 #' @export
 multinom <- function(gamma){
     blockmod(
@@ -228,10 +229,10 @@ multinom <- function(gamma){
     )
 }
 
-#' Dirichlet Multionoial Allocation model
-#' @param gamma parameter for dirichlet component Dir(gam, gam, ...)
-#' @param delta parameter for Poison(delta) - distribution on number of blocks
-#' @return a block model representing a dma(gamma, delta) distribution
+#' Dirichlet Multinomial Allocation model
+#' @param gamma parameter for Dirichlet component \code{Dir(gam, gam, ...)}
+#' @param delta parameter for \code{Poison(delta)} - distribution on number of blocks
+#' @return a block model representing a \code{dma(gamma, delta)} distribution
 #' @export
 dma <- function(gamma, delta){
     blockmod(
@@ -258,15 +259,15 @@ dma <- function(gamma, delta){
     )
 }
 
-#' compute lgamma with lgamma(0) = -Inf
-#' @param x numeric value to compute lgamma
+#' compute log gamma with \code{lgamma(0) = -Inf}
+#' @param x numeric value to compute log gamma
 mylgamma <- function(x)
     sapply(x, function(x) ifelse(x==0, -Inf, lgamma(x)))
 
 
 #' Chinese Restaurant Process model
-#' @param gamma parameter for CRP(gam)
-#' @return a block model representing a CRP(gamma) distribution
+#' @param gamma concentration parameter
+#' @return a block model representing a \code{CRP(gamma)} distribution
 #' @export
 crp <- function(gamma){
     blockmod(

@@ -1,6 +1,6 @@
 #' Class for edge data
 #' @param e a matrix or array representing the raw edge-state data
-#' @param sym is the network symetric? (is edge-state ji = edgestate ji)
+#' @param sym is the network symmetric? (\code{e[ji] = e[ji]})
 #' @param loops does the network contain self-loops? (edges from node i to i)
 #' @param ... additional arguments to append to edges internal list
 #' @return an edges object
@@ -28,8 +28,8 @@ edges <- function(e, sym, loops, ...){
 #' Class for edge models
 #' @param dg function to calculate likelihood of edges
 #' @param rg function to simulate edges optional
-#' @param ... additional arguments to append to edgemod internal list
-#' @return an edgemod object
+#' @param ... additional arguments to append to \code{edgemod} internal list
+#' @return an \code{edgemod} object
 #' @export
 edgemod <- function(dg, rg, ...){
     out <- list(dg=dg, ...)
@@ -39,16 +39,16 @@ edgemod <- function(dg, rg, ...){
     out
 }
 
-#' print an edges object
-#' @param x an edges object
+#' print an \code{edges} object
+#' @param x an \code{edges} object
 #' @param ... (unused)
 #' @export
 print.edges <- function(x, ...)
     print(paste("edges object on", x$numnodes, "nodes"))
 
-#' check if an object is an edges object
+#' check if an object is an \code{edges} object
 #' @param x an R object
-#' @return TRUE if x is an edges object
+#' @return TRUE if x is an \code{edges} object
 #' @export
 is.edges <- function(x)
     inherits(x,"edges")
@@ -56,13 +56,13 @@ is.edges <- function(x)
 #' plots edges objects
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot .data geom_raster theme scale_alpha xlab ylab aes element_blank
-#' @param x an edges object
-#' @param Blocks a blocks object or sbm object
-#' @param sorted sort by block membership in blocks before plotting?
-#' @param xlab label for x axis
-#' @param ylab label for y axis
-#' @param ... parameters for image
-#' @return ggplot2 plot of edges in a raster
+#' @param x an \code{edges} object
+#' @param Blocks a blocks object or \code{sbm} object
+#' @param sorted sort by block membership in \code{blocks} before plotting?
+#' @param xlab label for x-axis
+#' @param ylab label for y-axis
+#' @param ... parameters for \code{image}
+#' @return \code{ggplot2} plot of edges in a raster
 #' @export
 plot.edges <- function(x, Blocks, sorted=TRUE, xlab="Node", ylab="Node", ...){
     ord <- 1:x$numnodes
@@ -115,29 +115,29 @@ makesymmetric.array <- function(e){
 }
 
 #' generate an edges object from x
-#' @param x an R object
+#' @param x an R object for dispatch
 #' @param ... additional arguments
 #' @export
 redges <- function(x, ...)
     UseMethod("redges", x)
 
 #' simulate edges
-#' @param x an sbm object
-#' @param mod a model object
-#' @param ... additional arguments passed to redges.params
+#' @param x an \code{sbm} object
+#' @param mod a model list
+#' @param ... additional arguments passed to \code{redges.params}
 #' @return an edges object
 #' @export
 redges.sbm <- function(x, mod, ...)
     redges.params(x$params, x$blocks, mod$edges,...)
 
 #' simulate edges
-#' @param x a params object
-#' @param blocks a blocks object
-#' @param edgemod an edgemod object
+#' @param x a \code{params} object
+#' @param blocks a \code{blocks} object
+#' @param edgemod an \code{edgemod} object
 #' @param sym should the network be symmetric?
 #' @param loops should the network have self-loops?
 #' @param ... additional arguments (unused)
-#' @return an edges object
+#' @return an \code{edges} object
 #' @export
 redges.params <- function(x, blocks, edgemod, sym=T, loops=F, ...){
     if(is.null(edgemod$rg))
@@ -152,30 +152,30 @@ redges.params <- function(x, blocks, edgemod, sym=T, loops=F, ...){
 }
 
 #' density of edges
-#' @param edges an edges object
+#' @param edges an \code{edges} object
 #' @param x an R object for dispatch
 #' @param ... additional arguments
-#' @return matrix same size as edges$E with density of each edge
+#' @return matrix same size as \code{edges$E} with density of each edge
 #' @export
 dedges <- function(edges, x, ...)
     UseMethod("dedges", x)
 
 #' density of edges
-#' @param edges an edges object
-#' @param x an sbm object
-#' @param mod a model object
-#' @param ... additional arguments for dedges.params
-#' @return matrix same size as edges$E with density of each edge
+#' @param edges an \code{edges} object
+#' @param x an \code{sbm} object
+#' @param mod a model list
+#' @param ... additional arguments for \code{dedges.params}
+#' @return matrix same size as \code{edges$E} with density of each edge
 dedges.sbm <- function(edges, x, mod, ...)
     dedges.params(edges, x$params, x$blocks, mod$edges, ...)
 
 #' density of edges
-#' @param edges an edges object
-#' @param x an params object
-#' @param blocks a blocks object
-#' @param edgemod an edgemod object
-#' @param ... additional arguments passed to dedges.numeric
-#' @return matrix same size as edges$E with density of each edge
+#' @param edges an \code{edges} object
+#' @param x an \code{params} object
+#' @param blocks a \code{blocks} object
+#' @param edgemod an \code{edgemod} object
+#' @param ... additional arguments passed to \code{dedges.numeric}
+#' @return matrix same size as \code{edges$E} with density of each edge
 #' @export
 dedges.params <- function(edges, x, blocks, edgemod, ...){
     pmat <- parammat(blocks, x)
@@ -183,42 +183,42 @@ dedges.params <- function(edges, x, blocks, edgemod, ...){
 }
 
 #' likelihood of edges
-#' @param edges an edges object
-#' @param x a matrix of parameters
-#' @param edgemod an edgemod object
-#' @param ... additional arguments passed to edgemod$dg
-#' @return likelihood of edges under the edgemod using parameters in matrix pmat which has same size as edgse$E
+#' @param edges an \code{edges} object
+#' @param x a matrix of parameters (with same size as \code{edgse$E})
+#' @param edgemod an \code{edgemod} object
+#' @param ... additional arguments passed to \code{edgemod$dg}
+#' @return likelihood of edges under the \code{edgemod} using parameters in matrix \code{pmat}
 #' @export
 dedges.numeric <- function(edges, x, edgemod, ...)
     edgemod$dg(edges$E, x, ...)
 
 #' likelihood of edges
-#' @param edges an edges object
+#' @param edges an \code{edges} object
 #' @param x an object to dispatch on
 #' @param ... additional arguments for inherited method
-#' @return numeric likelihood of edges under x
+#' @return numeric likelihood of edges under \code{x}
 #' @export
 loglike <- function(edges, x, ...)
     UseMethod("loglike", x)
 
 #' likelihood of edges
-#' @param edges an edges object
-#' @param x an sbm object
-#' @param mod a model object
-#' @param ... additional arguments for loglike.params
-#' @return numeric likelihood of edges under x
+#' @param edges an \code{edges} object
+#' @param x an \code{sbm} object
+#' @param mod a model list
+#' @param ... additional arguments for \code{loglike.params}
+#' @return numeric likelihood of edges under \code{x}
 #' @export
 loglike.sbm <- function(edges, x, mod, ...)
     loglike.params(edges, x$params, x$blocks, mod$edges, ...)
 
 #' likelihood of edges
-#' @param edges an edges object
-#' @param x a params object
-#' @param blocks a blocks object
-#' @param edgemod an edgemod object
-#' @param na.rm passed to sum to remove NAs or not (default FALSE)
-#' @param ... additional arguments for dedges
-#' @return likelihood of edges under the edgemod using parameters in matrix pmat which has same size as edgse$E
+#' @param edges an \code{edges} object
+#' @param x a \code{params} object
+#' @param blocks a \code{blocks} object
+#' @param edgemod an \code{edgemod} object
+#' @param na.rm passed to sum to remove \code{NA}s or not (default \code{FALSE})
+#' @param ... additional arguments for \code{dedges}
+#' @return likelihood of \code{edges} under the \code{edgemod} using parameters in \code{x}
 #' @export
 loglike.params <- function(edges, x, blocks, edgemod, na.rm=FALSE, ...){
     x <- dedges(edges, x, blocks, edgemod, ...)
@@ -230,7 +230,7 @@ loglike.params <- function(edges, x, blocks, edgemod, na.rm=FALSE, ...){
     ll
 }
 
-#' get the edges eminating from node i
+#' get the edges emanating from node i
 #' @param x object for dispatch
 #' @param ... additional arguments
 edgesfromi <- function(x,...)
@@ -239,43 +239,43 @@ edgesfromi <- function(x,...)
 edgesfromi.dynedges <- function(edges, i, kappa=1)
     dynedges(edges$E[,rep(i,kappa), -i, drop=FALSE], edges$obtimes)
 
-#' get the edges eminating from node i
-#' @param Edges an edges object
-#' @param i the node incident to the returned edges
+#' get the edges emanating from node i
+#' @param Edges an \code{edges} object
+#' @param i the node incident to the returned \code{edges}
 #' @param kappa number of blocks
-#' @return an edges object containing only the edges incident to i
+#' @return an \code{edges} object containing only the edges incident to i
 edgesfromi.edges <- function(Edges, i, kappa=1)
     edges(Edges$E[rep(i,kappa), -i, drop=FALSE], Edges$sym, Edges$loops)
 
 
-#' get likelihood of edges eminating from node i
-#' @param Edges an edges object
+#' get likelihood of edges emanating from node i
+#' @param Edges an \code{edges} object
 #' @param x an object
 #' @param ... additional arguments
-#' @return likelihood of edges eminating from node i
+#' @return likelihood of edges emanating from node i
 #' @export
 nodelike <- function(Edges, x, ...)
     UseMethod("nodelike", x)
 
-#' get likelihood of edges eminating from node i
-#' @param Edges an edges object
-#' @param x an sbm object
-#' @param Mod a model object
+#' get likelihood of edges emanating from node i
+#' @param Edges an \code{edges} object
+#' @param x an \code{sbm} object
+#' @param Mod a \code{model} object
 #' @param i the node of interest
-#' @param ... additional arguments for nodelike.blocks
-#' @return likelihood of edges eminating from node i
+#' @param ... additional arguments for \code{nodelike.blocks}
+#' @return likelihood of edges emanating from node i
 #' @export
 nodelike.sbm <- function(Edges, x, Mod, i, ...)
     nodelike.blocks(Edges, x$blocks, x$params, Mod, i, ...)
 
-#' get likelihood of edges eminating from node i
-#' @param Edges an edges object
-#' @param x an blocks object
-#' @param Params a params object
-#' @param Mod a model object
+#' get likelihood of edges emanating from node i
+#' @param Edges an \code{edges} object
+#' @param x an \code{blocks} object
+#' @param Params a \code{params} object
+#' @param Mod a model list
 #' @param i the node of interest
-#' @param ... additional arguments passed to dedges
-#' @return likelihood of edges eminating from node i
+#' @param ... additional arguments passed to \code{dedges}
+#' @return likelihood of edges emanating from node i
 #' @export
 nodelike.blocks <- function(Edges, x, Params, Mod, i, ...){
     Edgemod <- Mod$edges
@@ -289,9 +289,10 @@ nodelike.blocks <- function(Edges, x, Params, Mod, i, ...){
 }
 
 
-#' Make an edgemod model with bernoulli edge-states
-#' @param ... additional parameters to pass to rbinom
-#' @return an edgemod representing edgestates which are Bernoulli distributed
+#' @title Bernoulli edge model
+#' @description Make an \code{edgemod} model with Bernoulli edge-states
+#' @param ... additional parameters to pass to \code{rbinom}
+#' @return an \code{edgemod}
 #' @export
 edges_bern <- function(...)
     edgemod(
@@ -302,9 +303,10 @@ edges_bern <- function(...)
         dg = function(e, p) stats::dbinom(e, 1, p, log=TRUE)
     )
 
-#' Make an edgemod model with Poisson edge-states
-#' @param ... additional parameters to pass to rpois
-#' @return an edgemod representing edgestates which are Poisson distributed
+#' @title Poisson edge model
+#' @description Make an \code{edgemod} model with Poisson edge-states
+#' @param ... additional parameters to pass to \code{rpois}
+#' @return an \code{edgemod}
 #' @export
 edges_pois <- function(...)
     edgemod(
@@ -315,9 +317,10 @@ edges_pois <- function(...)
         dg = function(e, p) stats::dpois(e, p, log=TRUE)
     )
 
-#' Make an edgemod model with Normal edge-states
-#' @param ... additional parameters to pass to rnorm
-#' @return an edgemod representing edgestates which are Gaussian distributed
+#' @title Normal edge model
+#' @description Make an \code{edgemod} model with Normal edge-states
+#' @param ... additional parameters to pass to \code{rnorm}
+#' @return an \code{edgemod}
 #' @export
 edges_norm <- function(...)
     edgemod(
@@ -328,9 +331,10 @@ edges_norm <- function(...)
         dg = function(e, p) stats::dnorm(e, p[1,,], p[2,,], log=TRUE)
     )
 
-#' Make an edgemod model with NegativeBinomial edge-states
-#' @param ... additional parameters to pass to rnbinom
-#' @return an edgemod representing edgestates which are NegativeBinomial distributed
+#' @title Negative-Binomial edge model
+#' @description Make an \code{edgemod} model with Negative-Binomial edge-states
+#' @param ... additional parameters to pass to \code{rnbinom}
+#' @return an \code{edgemod}
 #' @export
 edges_nbin <- function(...)
     edgemod(

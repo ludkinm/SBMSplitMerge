@@ -7,7 +7,7 @@
 #' @format A list containing
 #' \describe{
 #'   \item{Edges}{an edges object with each edge-state representing the number of emails between two email addresses}
-#'   \item{Groups}{A vecto giving a group name to which the email address belong. The order matches the edges such that Edges[i,j] is the edge-state between the i-th and j-th nodes who are members of Groups[i] and Groups[j] respectively}
+#'   \item{Groups}{A vector giving a group name to which the email address belong. The order matches the edges such that Edges[i,j] is the edge-state between the nodes i and nodes j who are members of Groups[i] and Groups[j] respectively}
 #' }
-#' @source https://cran.r-project.org/package=igraphdata
+#' @source \url{https://cran.r-project.org/package=igraphdata}
 "Enron"

@@ -1,9 +1,9 @@
 #' simulate parameters for the given model in a Metropolis scheme
-#' @param currsbm current state of sbm under the MCMC chain
-#' @param Edges edge state data
-#' @param Mod model object for the sbm
-#' @param sigma parameter for drawparam
-#' @return updated sbm object
+#' @param currsbm current \code{sbm} object
+#' @param Edges edge state data \code{edges} object
+#' @param Mod model object for the \code{sbm}
+#' @param sigma parameter for \code{drawparam}
+#' @return updated \code{sbm} object
 #' @export
 drawparams <- function(currsbm, Edges, Mod, sigma=0.1){
     for(k in 0:currsbm$kappa){
@@ -21,12 +21,12 @@ drawparam <- function(x, ...)
     UseMethod("drawparam", x)
 
 #' simulate parameter for the kth parameter
-#' @param x current state of sbm under the MCMC chain
+#' @param x current \code{sbm} object
 #' @param k index of parameter to update
-#' @param Mod model object for the sbm
-#' @param sigma parameter for drawparam
-#' @param ... additional arguments for drawparam.params
-#' @return list(proposed sbm, log-jacobian term)
+#' @param Mod model object for the \code{sbm} in \code{x}
+#' @param sigma parameter for \code{drawparam}
+#' @param ... additional arguments for \code{drawparam.params}
+#' @return \code{list(proposed sbm, log-jacobian term)}
 #' @export
 drawparam.sbm <- function(x, k, Mod, sigma, ...){
     p <- drawparam(x$params, x$blocks, k, Mod$params, sigma, ...)
@@ -34,13 +34,13 @@ drawparam.sbm <- function(x, k, Mod, sigma, ...){
 }
 
 #' simulate parameter for the kth parameter
-#' @param x current params object
-#' @param Blocks current blocks object
+#' @param x current \code{params} object
+#' @param Blocks current \code{blocks} object
 #' @param k index of parameter to update
 #' @param Parammod model object for the parameters
-#' @param sigma parameter for rw
+#' @param sigma parameter for \code{rw}
 #' @param ... additional arguments (unused)
-#' @return list(proposed params, log-jacobian term)
+#' @return \code{list(proposed params, log-jacobian term)}
 #' @export
 drawparam.params <- function(x, Blocks, k, Parammod, sigma, ...){
     if(k == 0){
@@ -72,17 +72,19 @@ drawparam.params <- function(x, Blocks, k, Parammod, sigma, ...){
 
 #' random walk
 #' @param p a parameter
-#' @param pm parammodel - contains the transform/map to project parameter to the real line
+#' @param pm a \code{parammod} object
 #' @param sigma - scale of random walk
+#' @return \code{ist(proposed parameter, locjacobian)}
 rw <- function(p, pm, sigma){
     pprime <- pm$invt(pm$t(p) + stats::rnorm(length(p), 0, sigma))
     logjac <- pm$loggradt(pprime) - pm$loggradt(p)
     list(prop = pprime, logjac=logjac)
 }
 
-#' draw from the prior - locjac = 0
+#' draw from the prior
 #' @param k index of parameter
-#' @param pm parammodel - contains the transform/map to project parameter to the real line and the prior on parameters
+#' @param pm a \code{parammod} object
+#' #' @return \code{ist(proposed parameter, locjacobian=0)}
 rparam <- function(k, pm){
     if(k==0){
         prop <- rparams(0, pm)$theta0

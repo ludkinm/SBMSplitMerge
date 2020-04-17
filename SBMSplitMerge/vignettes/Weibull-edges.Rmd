@@ -1,8 +1,8 @@
 ---
-title: "weibull-edges"
+title: "Weibull edges"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{negative-binomial}
+  %\VignetteIndexEntry{Weibull-edges}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -28,7 +28,7 @@ Each component is connected to the other and the connections are all turned on a
 We record the failure time of each connections.
 
 This can be modelled as a network, where the edge-weights are the failure times.
-A standard likelihood model for failure times is the _Weibull distribution_ [(on wikipedia)](https://en.wikipedia.org/wiki/Weibull_distribution).
+A standard likelihood model for failure times is the _Weibull distribution_ [(on Wikipedia)](https://en.wikipedia.org/wiki/Weibull_distribution).
 The probability density function is:
 \[
 \frac{k}{\lambda}\left(\frac{x}{\lambda}\right)^{k-1} e^{-(x/\lambda)^{k}}
@@ -46,7 +46,7 @@ There are three parts to the GSBM:
 The ``edgemod`` object in SBMSplitMerge encapsulates the likelihood of the edge weights.
 A basic ``edgemod`` is a thin wrapper to a density function. The package insists on the density function taking the form ``f(x, p)`` where ``x`` is an edge-weight and ``p`` is a parameter 3-array.
 An optional random method can be added. This has the signature ``f(p)`` where ``p`` is again a vector of parameters.
-For the weibull example, we can rely on \code{R}'s built in weibull functions
+For the Weibull example, we can rely on \code{R}'s built in Weibull functions
 ```{r}
 edge_model <- edgemod(
 	dg = function(e, p) dweibull(e, p[1,,], p[2,,], log=TRUE)
@@ -56,10 +56,10 @@ edge_model <- edgemod(
 ```
 
 # Block model
-In the GSBM, the prior specification for the number of blocks is explicit. To facilitate other models (such as a chinese restaurant process), the ``blockmod`` object in the package
+In the GSBM, the prior specification for the number of blocks is explicit. To facilitate other models (such as a Chinese Restaurant Process), the \code{blockmod} object in the package
 encapsulates the join distribution for the number of blocks and assignment of nodes to blocks; we refer to these as the 'block structure'.
-To provide a ``blockmod`` the following are needed: some input parameters gamma, log density for the block structure, a random method for the block structure, the conditional distribution of a single node assignment given the others and a boolean indicating if the number of blocks (kappa) is fixed.
-The package provides three pre-specified ```blockmod``s:
+To provide a \code{blockmod} the following are needed: some input parameters gamma, log density for the block structure, a random method for the block structure, the conditional distribution of a single node assignment given the others and a boolean indicating if the number of blocks (kappa) is fixed.
+The package provides three pre-specified \code{blockmod}s:
 - ``multinom`` - fixed number of blocks with a multinomial assignment of nodes to blocks
 - ``crp`` - the chinese restaurant process
 - ``dma`` - dirichlet-multinomial allocation
@@ -71,16 +71,16 @@ block_model <- dma(1, 10)
 ```
 
 # Parameter model
-Finally, the prior model on the parameters of the weibull distribution is specified.
+Finally, the prior model on the parameters of the Weibull distribution is specified.
 This is the most involved component since it requires some functions to map the inputs to the real line.
 The components of a ``parammod`` are:
-- alpha - the parameters for the prior on theta0
-- beta  - the parameters for the prior on thetak
-- rf - a function like ``rf(n, p)`` where ``n`` is a number of variates to simulate ``p`` is a parameter
-- df - a function like ``df(x, p)`` where ``x`` is a variate and ``p`` is a parameter
-- t - a function mapping the support of the parameter to the real line
-- invt - a function mapping the real line to the support of the parameter
-- loggradt - the jacobian of t
+- \code{alpha} - the parameters for the prior on \code{theta_0}
+- \code{beta}  - the parameters for the prior on \code{theta_k}
+- \code{rf} - a function like ``rf(n, p)`` where ``n`` is a number of variates to simulate ``p`` is a parameter
+- \code{df} - a function like ``df(x, p)`` where ``x`` is a variate and ``p`` is a parameter
+- \code{t} - a function mapping the support of the parameter to the real line
+- \code{invt} - a function mapping the real line to the support of the parameter
+- \code{loggradt} - the jacobian of t
 
 For the Weibull example, $k$ and $\lambda$ must be positive. A reasonable prior is a Gamma distribution, which can be specified like so:
 ```{r}
@@ -111,7 +111,7 @@ The data should appear in a square matrix and wrapped in an ``edges`` object.
 For the purpose of this example we simulate the data with some true values:
 ```{r}
 set.seed(1)
-true_blocks   <- blocks(rep(c(1, 2, 3), c(20,20,10)))
+true_blocks   <- blocks(rep(c(1, 2, 3), c(10, 20, 20)))
 true_params   <- params(c(1, 0.5), cbind(1, c(3,4,5)))
 true_sbm      <- sbm(true_blocks, true_params)
 weibull_edges <- redges(true_params, true_blocks, model$edges)
@@ -126,8 +126,7 @@ plot(weibull_edges)
 
 We are now in a position to sample from the model:
 ```{r}
-set.seed(2)
-weibull_posterior <- sampler(weibull_edges, model, 1000, sigma=0.1)
+weibull_posterior <- sampler(weibull_edges, model, 300, sigma=0.1)
 ```
 
 and see some diagnostic plots

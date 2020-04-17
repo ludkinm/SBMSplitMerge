@@ -1,8 +1,8 @@
 #' draw blocks in Dirichlet process sampler
-#' @param currsbm current SBM state
+#' @param currsbm current \code{sbm} object
 #' @param Edges an edges object
 #' @param Mod a model list
-#' @return updated sbm
+#' @return updated \code{sbm}
 drawblocks.dp <- function(currsbm, Edges, Mod){
     for(i in 1:currsbm$numnodes)
         currsbm <- drawblock.dp(i, currsbm, Edges, Mod)
@@ -11,10 +11,10 @@ drawblocks.dp <- function(currsbm, Edges, Mod){
 
 #' draw blocks in Dirichlet process sampler
 #' @param i node to update
-#' @param currsbm current SBM state
+#' @param currsbm current \code{sbm} object
 #' @param Edges an edges object
 #' @param Mod a model object
-#' @return updated sbm
+#' @return updated \code{sbm} object
 drawblock.dp <- function(i, currsbm, Edges, Mod){
     ## current values
     propz <- as.numeric(as.character(currsbm$blocks$z))

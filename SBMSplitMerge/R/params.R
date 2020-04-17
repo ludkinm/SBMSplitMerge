@@ -1,13 +1,13 @@
 #' @title \code{parammod} S3 object
 #' @description make a \code{parammod} object
-#' @param alpha parameters for theta_0
-#' @param beta parameters for theta_k
-#' @param rf random function to draw parameters (the prior) rf(n, x) draws n parameters with hyperparameters x
-#' @param df density function for parameters df(theta, x) density of theta with hyperparameters x
+#' @param alpha parameters for \code{theta_0}
+#' @param beta parameters for \code{theta_k}
+#' @param rf random function to draw parameters (the prior) \code{rf(n, x)} draws n parameters with hyperparameters x
+#' @param df density function for parameters \code{df(theta, x)} density of theta with hyperparameters x
 #' @param t map taking parameter space to real line
 #' @param invt map taking real line to parameter space
-#' @param loggradt log of the gradient of the map t
-#' @return a parammod object
+#' @param loggradt log of the gradient of the map \code{t}
+#' @return a \code{parammod} object
 #' @export
 parammod <- function(alpha, beta, rf, df, t, invt, loggradt){
     out <- list(alpha = alpha,
@@ -23,10 +23,10 @@ parammod <- function(alpha, beta, rf, df, t, invt, loggradt){
 }
 
 #' @title \code{params} S3 object
-#' @description make a params object from the between-block parameter \code{theta0} and a vector of within block parameters \code{thetak}
+#' @description make a \code{params} object from the between-block parameter \code{theta0} and a vector of within block parameters \code{thetak}
 #' @param theta0 between block parameter
 #' @param thetak within block parameters
-#' @return a params object
+#' @return a \code{params} object
 #' @export
 params <- function(theta0, thetak){
     thetak <- as.matrix(thetak)
@@ -40,16 +40,16 @@ params <- function(theta0, thetak){
 #' @title generate parameters
 #' @description Generate parameters from a give \code{parammod} object with \code{kappa} blocks
 #' @param kappa number of blocks
-#' @param PM a parammod object
-#' @return a params object
+#' @param parammod a \code{parammod} object
+#' @return a \code{params} object
 #' @export
-rparams <- function(kappa, PM){
-    theta0 <- PM$rf(1, PM$alpha)
-    thetak <- PM$rf(kappa, PM$beta)
+rparams <- function(kappa, parammod){
+    theta0 <- parammod$rf(1, parammod$alpha)
+    thetak <- parammod$rf(kappa, parammod$beta)
     params(theta0, thetak)
 }
 
-#' @title Density of params
+#' @title Density of \code{params}
 #' @description calculate density of parameters
 #' @param x an object
 #' @param ... additional arguments
@@ -58,34 +58,34 @@ rparams <- function(kappa, PM){
 dparams <- function(x, ...)
     UseMethod("dparams", x)
 
-#' @title Density of params
-#' @description computing density of params under an \code{sbm} object
-#' @param x an sbm object
-#' @param mod a model list with a params element
-#' @param ... additional arguments for dparams.params
-#' @return density of parameters in sbm under mod
+#' @title Density of \code{params}
+#' @description computing density of \code{params} under an \code{sbm} object
+#' @param x an \code{sbm} object
+#' @param mod a model list with a \code{params} element
+#' @param ... additional arguments for \code{dparams.params}
+#' @return density of parameters in \code{sbm} under mod
 #' @export
 dparams.sbm <- function(x, mod, ...)
     dparams.params(x$params, mod$params, ...)
 
-#' @title Density of params
-#' @description computing density of params under a \code{parammod}
-#' @param x a params object
-#' @param PM a parammod object
+#' @title Density of \code{params}
+#' @description computing density of \code{params} under a \code{parammod}
+#' @param x a \code{params} object
+#' @param parammod a \code{parammod} object
 #' @param log return log density?
-#' @param ... additional parameters for PM$df density funtcion
-#' @return density of parameters in sbm under mod
+#' @param ... additional parameters for \code{parammod$df} density function
+#' @return density of parameters
 #' @export
-dparams.params <- function(x, PM, log=TRUE, ...){
-    out <- PM$df(x$theta0, PM$alpha, log=log,...) + sum(PM$df(x$thetak, PM$beta, log=log,...))
+dparams.params <- function(x, parammod, log=TRUE, ...){
+    out <- parammod$df(x$theta0, parammod$alpha, log=log,...) + sum(parammod$df(x$thetak, parammod$beta, log=log,...))
     if(!log)
         out <- exp(out)
     out
 }
 
-#' @title  plot params
+#' @title  plot \code{params}
 #' @description barplot of parameter values in a \code{params} object
-#' @param x a params object
+#' @param x a \code{params} object
 #' @param ... additional graphical arguments
 #' @export
 plot.params <- function(x, ...){
@@ -94,7 +94,7 @@ plot.params <- function(x, ...){
 
 #' @title Printer
 #' @description print parameters
-#' @param x a params object
+#' @param x a \code{params} object
 #' @param ... additional arguments for formatting (unused)
 #' @export
 print.params <- function(x,...)
@@ -103,10 +103,10 @@ print.params <- function(x,...)
 format.params <- function(params,...)
     c("Params object\nkappa = ", params$kappa, "\ntheta0 =", params$theta0,"\nthetak:\n", params$thetak)
 
-#' @title is params check
-#' @description check if an R object is a params object
+#' @title is \code{params} check
+#' @description check if an R object is a \code{params} object
 #' @param x an R object
-#' @return TRUE if x is a params object
+#' @return TRUE if x is a \code{params} object
 #' @export
 is.params <- function(x)
     inherits(x, "params")
@@ -125,7 +125,7 @@ parammat <- function(x, ...)
 #' @param zright block assignments on the right
 #' @param params the parameters object
 #' @param ... (unused)
-#' @return a matrix of parameters of size |zleft| x |zright|
+#' @return a matrix of parameters of size |\code{zleft}| x |\code{zright}|
 parammat.matrix <- function(zleft, zright, params, ...){
     p <- parammat(params, dim(zleft)[1])
     out <- array(0, c(params$dtheta, dim(zleft)[2], dim(zright)[2]))
@@ -136,18 +136,18 @@ parammat.matrix <- function(zleft, zright, params, ...){
 
 #' @title Parameter Matrix maker
 #' @description Make a matrix of parameters from a \code{blocks} and \code{params} object
-#' @param x a blocks object
-#' @param params the parameters object
+#' @param x a \code{blocks} object
+#' @param params a \code{params} object
 #' @param ... (unused)
-#' @return a matrix of parameters of size NxN where parammet(i,j) is the parameter governing edge i,j under the block assignments in blocks
+#' @return an \code{NxN} matrix \code{P}, with \code{P[i,j] = } the parameter governing edge \code{ij}
 #' @export
 parammat.blocks <- function(x, params, ...)
     parammat(zmat(x), zmat(x), params)
 
 #' @title Parameter Matrix maker
 #' @description Make a matrix of parameters from a \code{params} object
-#' @param x the parameters object
-#' @param kappa - number of blocks to compute for - needed in computing the sequential assignmetn during split move
+#' @param x a \code{params} object
+#' @param kappa - number of blocks to compute for - needed in computing the sequential assignment during split move
 #' @param ... (unused)
 #' @return a matrix of parameters
 #' @export
@@ -170,7 +170,7 @@ parammat.params <- function(x, kappa, ...){
 
 #' @title Parameter Matrix maker
 #' @description Make a matrix of parameters from an \code{sbm} object
-#' @param x an SBM object
+#' @param x an \code{sbm} object
 #' @param ... (unused)
 #' @return a matrix of parameters
 #' @export
@@ -179,11 +179,11 @@ parammat.sbm <- function(x, ...)
 
 #' @title Parameter model for Beta
 #' @description beta parameter model
-#' @param a0 theta_0 ~ Beta(a0,a1)
-#' @param a1 theta_0 ~ Beta(a0,a1)
-#' @param b0 theta_k ~ Beta(b0,b1)
-#' @param b1 theta_k ~ Beta(b0,b1)
-#' @return parammod representing beta distributed parameters
+#' @param a0 \code{theta_0 ~ Beta(a0,a1)}
+#' @param a1 \code{theta_0 ~ Beta(a0,a1)}
+#' @param b0 \code{theta_k ~ Beta(b0,b1)}
+#' @param b1 \code{theta_k ~ Beta(b0,b1)}
+#' @return a \code{parammod}
 #' @importFrom stats dbeta rbeta
 #' @export
 param_beta <- function(a0, a1, b0, b1){
@@ -199,11 +199,11 @@ param_beta <- function(a0, a1, b0, b1){
 }
 
 #' gamma parameter model
-#' @param a0 theta_0 ~ Gamma(a0,a1)
-#' @param a1 theta_0 ~ Gamma(a0,a1)
-#' @param b0 theta_k ~ Gamma(b0,b1)
-#' @param b1 theta_k ~ Gamma(b0,b1)
-#' @return parammod representing gamma distributed parameters
+#' @param a0 \code{theta_0 ~ Gamma(a0,a1)}
+#' @param a1 \code{theta_0 ~ Gamma(a0,a1)}
+#' @param b0 \code{theta_k ~ Gamma(b0,b1)}
+#' @param b1 \code{theta_k ~ Gamma(b0,b1)}
+#' @return a \code{parammod}
 #' @importFrom stats rgamma dgamma
 #' @export
 param_gamma <- function(a0, a1, b0, b1){
@@ -220,13 +220,13 @@ param_gamma <- function(a0, a1, b0, b1){
 
 #' @title Parameter model for Normal Model
 #' @description Normal parameter model:
-#' theta_0 = (mu0, sigma0)
-#' theta_k = (muk, sigmak)
-#' @param a0,a1 mu0 ~ Normal(a0,a1)
-#' @param b0,b1 sig_0 ~ Gamma(b0,b1)
-#' @param c0,c1 muk ~ Normal(c0, c1)
-#' @param d0,d1 sig_k ~ Gamma(d0,d1)
-#' @return parammod representing Normal distributed parameters
+#' \code{theta_0 = (mu0, sigma0)}
+#' \code{theta_k = (muk, sigmak)}
+#' @param a0,a1 \code{mu0 ~ Normal(a0,a1)}
+#' @param b0,b1 \code{sig_0 ~ Gamma(b0,b1)}
+#' @param c0,c1 \code{muk ~ Normal(c0, c1)}
+#' @param d0,d1 \code{sig_k ~ Gamma(d0,d1)}
+#' @return \code{parammod} representing Normal distributed parameters
 #' @importFrom stats rgamma dgamma rnorm dnorm
 #' @export
 param_norm <- function(a0, a1, b0, b1, c0, c1, d0, d1){
@@ -243,13 +243,13 @@ param_norm <- function(a0, a1, b0, b1, c0, c1, d0, d1){
 
 #' @title Parameter model for Negative Binomial
 #' @description Negative Binomial parameter model:
-#' theta_0 = (mu0, sigma0)
-#' theta_k = (muk, sigmak)
-#' @param a0,a1 mu0 ~ Gamma(a0,a1)
-#' @param b0,b1 sig_0 ~ Beta(b0,b1)
-#' @param c0,c1 muk ~ Gamma(c0, c1)
-#' @param d0,d1 sig_k ~ Beta(d0,d1)
-#' @return parammod representing NegativeBinomial distributed parameters
+#' \code{theta_0 = (mu0, sigma0)}
+#' \code{theta_k = (muk, sigmak)}
+#' @param a0,a1 \code{mu0 ~ Gamma(a0,a1)}
+#' @param b0,b1 \code{sig_0 ~ Beta(b0,b1)}
+#' @param c0,c1 \code{muk ~ Gamma(c0, c1)}
+#' @param d0,d1 \code{sig_k ~ Beta(d0,d1)}
+#' @return \code{parammod} representing Negative-Binomial distributed parameters
 #' @importFrom stats rgamma dgamma rbeta dbeta
 #' @export
 param_nbin <- function(a0, a1, b0, b1, c0, c1, d0, d1){

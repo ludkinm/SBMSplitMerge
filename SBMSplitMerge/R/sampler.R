@@ -1,18 +1,18 @@
 #' @title top level sampler function
-#' @param Edges edges object
-#' @param Mod model object
-#' @param nSteps number of steps to run mcmc for
-#' @param algorithm choice of algorithm options are: "conjugate", "gibbs", "dp", "rj"
-#' @param sigma random walk parameter for theta
-#' @param statusfreq frequency to print some status info out - in number of iterations
-#' @param currsbm initial state for sbm object - if NULL one is drawn from mod
-#' @param ... additional parameters to pass to sbm for currsbm
-#' @return postz traces for block assignments z
-#' @return postt traces for theta
-#' @return postk traces for number of blocks kappa
-#' @return postn traces for number of occupied blocks
-#' @return nsteps how many steps did the algo use
-#' @return algorithm which algo was used
+#' @param Edges \code{edges} object
+#' @param Mod model list
+#' @param nSteps number of steps to run MCMC
+#' @param algorithm choice of algorithm options are: \code{"conjugate", "gibbs", "dp", "rj"}
+#' @param sigma random walk parameter for \code{theta}
+#' @param statusfreq print the elapsed number of iterations every \code{statusfreq} iterations
+#' @param currsbm initial state for \code{sbm} object - if NULL one is drawn from mod
+#' @param ... additional parameters to pass to \code{sbm} for \code{currsbm}
+#' @return \code{postz} traces for block assignments \code{z}
+#' @return \code{postt} traces for \code{theta}
+#' @return \code{postk} traces for number of blocks \code{kappa}
+#' @return \code{postn} traces for number of occupied blocks
+#' @return \code{nsteps} number of iterations of chain
+#' @return \code{algorithm} choice
 #' @export
 sampler <- function(Edges, Mod, nSteps=1000, algorithm="rj",
                     sigma=0.5, statusfreq, currsbm, ...){
@@ -77,15 +77,15 @@ status <- function(s, n=10)
     if( s %% n == 0)
         cat(s, "\n")
 
-#' accept propsbm with the acceptance probability alpha
-#' @param currsbm current sbm state
-#' @param propsbm proposed sbm state
-#' @param Edges edges object
-#' @param Mod model object
-#' @param logjac log jacobian of transformation of variables
+#' accept \code{propsbm} with the acceptance probability alpha
+#' @param currsbm current \code{sbm} state
+#' @param propsbm proposed \code{sbm} state
+#' @param Edges \code{edges} object
+#' @param Mod model list
+#' @param logjac log Jacobian of transformation of variables
 #' @param logu log density for auxiliary variables
-#' @param ... additional arguments to pass to loglike
-#' @return new currsbm
+#' @param ... additional arguments to pass to log-likelihood
+#' @return next \code{sbm} in the chain
 accept <- function(currsbm, propsbm, Edges, Mod, logjac=0, logu=0, ...){
     logl <- loglike(Edges, propsbm, Mod, ...) - loglike(Edges, currsbm, Mod, ...)
     logp <- dparams(propsbm, Mod) - dparams(currsbm, Mod)
@@ -116,7 +116,7 @@ sampler.conj <- function(currsbm, Edges, Mod){
 
 #' Gibbs sampling for node assignments
 #' @param currsbm the current state of the sampler
-#' @param Edges edges object
+#' @param Edges \code{edges} object
 #' @param Mod model list
 #' @param sigma random walk parameter for theta
 sampler.gibbs <- function(currsbm, Edges, Mod, sigma){
@@ -125,9 +125,9 @@ sampler.gibbs <- function(currsbm, Edges, Mod, sigma){
     currsbm
 }
 
-#' dirichlet process sampler
+#' Dirichlet Process sampler
 #' @param currsbm the current state of the sampler
-#' @param Edges edges object
+#' @param Edges \code{edges} object
 #' @param Mod model list
 #' @param sigma random walk parameter for theta
 sampler.dp <- function(currsbm, Edges, Mod, sigma){
@@ -138,9 +138,9 @@ sampler.dp <- function(currsbm, Edges, Mod, sigma){
 
 #' reversible jump MCMC split-merge sampler
 #' @param currsbm the current state of the sampler
-#' @param Edges edges object
+#' @param Edges \code{edges} object
 #' @param Mod model list
-#' @param sigma random walk parameter for theta
+#' @param sigma random walk parameter for \code{theta}
 #' @param rho propensity to add a block
 sampler.rj <- function(currsbm, Edges, Mod, sigma, rho=10){
     currsbm <- drawparams(currsbm, Edges, Mod, sigma=sigma)

@@ -1,4 +1,4 @@
-# SBM SplitMerge
+# SBMSplitMerge
 SBMSplitMerge is an R package for performing inference on the number of blocks and the edge-state parameters in a Generalised Stochastic Block Model using a split-merge sampler.
 This allows for inference in non-conjugate edge-state models in a Bayesian framework.
 
@@ -19,12 +19,12 @@ Some methods allow the practitioner to specify a distribution for the interactio
 A flexible model would allow the practitioner to place any distribution on the _interaction process_.
 
 The number of groups or _blocks_ in the network is a key parameter. Some models in the literature set a joint prior on the number of blocks and assignment of individuals to blocks.
-This can lead to too many smaller blocks and inconsistent posterior behaviour [cf. Miller and Harrison](https://doi.org/10.1080/01621459.2016.1255636)
+This can lead to too many smaller blocks and inconsistent posterior behaviour [c.f. Miller and Harrison](https://doi.org/10.1080/01621459.2016.1255636)
 
 The GSBM allows an explicit prior on the number of groups and an arbitrary distribution for the interaction process.
 
 ## Using the package
-Consider the example at the start of this section. Suppose the interactions are in a $N$ by $N$ matrix in R called ``interacts``.
+Consider the example at the start of this section. Suppose the interactions are in a $N$ by $N$ matrix in R called \code{interacts}.
 First, you must specify the parts of the model:
 - the interaction process in a ``edgemod`` object
 - the prior for the parameters of the edge-model in a ``parammod`` object

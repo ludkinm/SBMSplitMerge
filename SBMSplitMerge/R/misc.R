@@ -13,10 +13,10 @@ logistic <- function(x)
 xlogx <- function(x)
     ifelse(x==0, x, x*log(x))
 
-#' Draw n random variables from Dricihlet(gam) - gam a vector of length K
+#' Draw from Dirichlet distribution
 #' @param n number of variates to draw
-#' @param gam a vector of concentration parameters
-#' @return x = Matrix(n,K)
+#' @param gam a vector of concentration parameters of length \code{K}
+#' @return matrix dimension \code{n*k} of samples
 #' @importFrom stats rgamma
 #' @export
 rdirichlet <- function (n, gam) {
@@ -26,9 +26,9 @@ rdirichlet <- function (n, gam) {
     x/as.vector(sm)
 }
 
-#' Density of X~dirichlet(gam)
+#' Density of Dirichlet distribution
 #' @param x random variable in the d-dimensional simplex
-#' @param gam a length d probability vector
+#' @param gam a length K concentration parameter
 #' @param log return the log-probability instead?
 #' @return the density
 #' @export
@@ -41,11 +41,11 @@ ddirichlet <- function (x, gam, log=FALSE) {
     p
 }
 
-#' Random draw from Categorical(p)
+#' Draw draw Categorical distribution
 #' @param n number of draws
 #' @param p a length-d probability vector
 #' @param replace should the categories be replaced? If so n < p required
-#' @return a length-d vector x, where \eqn{x[i] \in \{1,...,d\}}
+#' @return a draw from Categorical(p)
 #' @export
 rcat <- function(n, p, replace=TRUE)
     sample(1:length(p), n, replace, p)
@@ -53,8 +53,9 @@ rcat <- function(n, p, replace=TRUE)
 #' V-measure
 #' @param z input vector
 #' @param truez reference vector
-#' @param beta vmeasure parameter beta=1 gives equal weight to homogeneity and completeness
-#' @return v-measure of z against truez
+#' @param beta parameter \code{beta=1} gives equal weight to homogeneity and completeness
+#' @return v-measure of z against \code{truez}
+#' @seealso Rosenberg, A., & Hirschberg, J. (2007, June). V-measure: A conditional entropy-based external cluster evaluation measure. In Proceedings of the 2007 joint conference on empirical methods in natural language processing and computational natural language learning (EMNLP-CoNLL) (pp. 410-420).
 #' @export
 vmeasure <- function(z, truez, beta=1){
     C <- z
@@ -76,7 +77,7 @@ vmeasure <- function(z, truez, beta=1){
 #' Adjusted Rand Index
 #' @param z input vector
 #' @param truez reference vector
-#' @return ARI of z against truez
+#' @return Adjusted Rand Index of \code{z} against \code{truez}
 #' @export
 ARI <- function(z, truez){
     N <- length(z)
@@ -87,19 +88,4 @@ ARI <- function(z, truez){
     top <- sum(choose(n,2)) - eind
     bot <- 0.5*(a+b) - eind
     top/bot
-}
-
-
-#' gets command line args to numerics
-#' @export
-#' @param cmdargs a vector of strings probably from a call to commandArgs
-#' @param i the index to extract
-#' @param default a default value to use if not in cmdargs
-get_arg <- function(cmdargs, i, default){
-    tmp <- as.numeric(cmdargs[i])
-    if(!is.na(tmp)){
-        return(tmp)
-    } else{
-        return(default)
-    }
 }
