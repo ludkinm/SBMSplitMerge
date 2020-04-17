@@ -48,9 +48,9 @@ paramtrace <- function(theta, truetheta){
     ind <- colSums(apply(theta, 2, is.na)) != dim(theta)[3]
     theta[,ind,][is.na(theta[,ind,])] <- 0
     dft <- reshape2::melt(theta[,ind,,drop=FALSE], id=.data$Dimension)
-    names(dft) <- c("Dimension", "Block", "Step", "Value")
+    names(dft) <- c("Dimension", "Block", "Iteration", "Value")
     dft$Block <- as.factor(dft$Block - 1)
-    p <- ggplot2::ggplot(dft, ggplot2::aes(x=.data$Step, y=.data$Value, color=.data$Block)) +
+    p <- ggplot2::ggplot(dft, ggplot2::aes(x=.data$Iteration, y=.data$Value, color=.data$Block)) +
         ggplot2::geom_line() +
         ggplot2::xlab("Iteration") +
         ggplot2::ylab("Theta") +
