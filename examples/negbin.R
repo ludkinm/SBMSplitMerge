@@ -1,37 +1,38 @@
 #!/usr/bin/Rscript
-rm(list=ls())
-library(coda)
-library(ggplot2)
-library(parallel)
 library(SBMSplitMerge)
+source("functions.R")
 
-source("functions.r")
+dir.create("nbin")
 
-cmdargs <- commandArgs(TRUE)
+n_steps <- 10000
+sigma   <- 0.5
 
-n_steps  <- get_arg(cmdargs, 1, 100)
-sigma    <- get_arg(cmdargs, 2, 0.1)
-seed     <- get_arg(cmdargs, 3, 1)
-n_chains <- get_arg(cmdargs, 4, 1)
+## simulate data
+set.seed(1)
+true_blocks <- blocks(rep(c(1, 2, 3, 4), c(19, 23, 27, 31)))
+true_params <- params(c(1, 0.5), cbind(c(1,4:6), 0.5))
+true_sbm    <- sbm(true_blocks, true_params)
+Edges       <- redges(true_params, true_blocks, edges_nbin())
 
-model <- list(edges = edges_nbin(), params = param_nbin(1, 1, 1, 1, 1, 1, 1, 1), name="nbin")
+save(Edges, file="nbin/edges.RData")
+save(true_blocks, true_params, true_sbm, file="nbin/truth.RData")
+ggsave(paste0("nbin/edges.pdf"), image(Edges) + theme_gray(base_size = 20) + xlab("Node") + ylab("Node"))
+ggsave(paste0("nbin/edges_blocks.pdf"), image(Edges, true_sbm) + theme_gray(base_size = 20) + xlab("Node") + ylab("Node"))
 
-load(paste0(model$name, "/edges.RData"))
+## set up the model
+model <- list(edges = edges_nbin(),
+              params = param_nbin(1, 1, 1, 1, 1, 1, 1, 1),
+              blocks = dma(1, 10),
+              name="nbin")
 
-set.seed(seed)
-model$blocks <- dma(1, 10)
-runRJ(n_steps, Edges, model, n_chains)
+## run a single chain
+set.seed(1)
+post_theta_summary <- Run(Edges, model, n_steps, sigma=sigma)
 
-set.seed(seed)
-model$blocks <- crp(10)
-runDP(n_steps, Edges, model, n_chains)
+## perfect simulation diagnostic
+set.seed(1)
+PerfectSimulation(Edges, model, n_steps, sigma=sigma)
 
-
-
-load("./nbin/rj_post_10000.RDa")
-signif(apply(t(rj_output$postt[1,1:5,5000:10000]), 2, quantile, probs=c(.05,.5,.95)), 3)
-signif(apply(t(rj_output$postt[2,1:5,5000:10000]), 2, quantile, probs=c(.05,.5,.95)), 3)
-
-load("./nbin/rj_rubin_gelman.RDa")
-RJmeans$psrf
-RJvars$psrf
+## compute gelman-rubin statistics
+set.seed(1)
+GelmanRubin(Edges, model, n_steps, sigma=sigma)

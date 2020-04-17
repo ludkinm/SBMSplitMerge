@@ -1,35 +1,37 @@
 #!/usr/bin/Rscript
-rm(list=ls())
-library(coda)
-library(ggplot2)
-library(parallel)
 library(SBMSplitMerge)
+source("functions.R")
 
-source("functions.r")
+dir.create("bern")
 
-cmdargs <- commandArgs(TRUE)
+n_steps <- 10000
+sigma   <- 0.5
 
-n_steps  <- get_arg(cmdargs, 1, 100)
-sigma    <- get_arg(cmdargs, 2, 0.1)
-seed     <- get_arg(cmdargs, 3, 1)
-n_chains <- get_arg(cmdargs, 4, 1)
+## simulate data
+set.seed(1)
+true_blocks <- blocks(rep(c(1, 2, 3, 4), c(19, 23, 27, 31)))
+true_params <- params(0.05, (3+1:4)/10)
+true_sbm    <- sbm(true_blocks, true_params)
+Edges       <- redges(true_params, true_blocks, edges_bern())
+save(Edges, file="bern/edges.RData")
+save(true_blocks, true_params, true_sbm, file="bern/truth.RData")
+ggsave(paste0("bern/edges.pdf"), image(Edges) + theme_gray(base_size = 20) + xlab("Node") + ylab("Node"))
+ggsave(paste0("bern/edges_blocks.pdf"), image(Edges, true_sbm) + theme_gray(base_size = 20) + xlab("Node") + ylab("Node"))
 
-model <- list(edges = edges_bern(), params = param_beta(1, 1, 1, 1), name="bern")
+## set up the model
+model <- list(edges = edges_bern(),
+              params = param_beta(1, 1, 1, 1),
+              blocks = dma(1, 10),
+              name="bern")
 
-load(paste0(model$name, "/edges.RData"))
+## run a single chain
+set.seed(1)
+post_theta_summary <- Run(Edges, model, n_steps, sigma=sigma)
 
-set.seed(seed)
-model$blocks <- dma(1, 10)
-runRJ(n_steps, Edges, model, n_chains)
+## perfect simulation diagnostic
+set.seed(1)
+PerfectSimulation(Edges, model, n_steps, sigma=sigma)
 
-set.seed(seed)
-model$blocks <- crp(10)
-runDP(n_steps, Edges, model, n_chains)
-
-
-load("./bern/rj_post_10000.RDa")
-signif(apply(t(rj_output$postt[1,1:5,5000:10000]), 2, quantile, probs=c(.05,.5,.95)), 3)
-
-load("./bern/rj_rubin_gelman.RDa")
-RJmeans$psrf
-RJvars$psrf
+## compute gelman-rubin statistics
+set.seed(1)
+GelmanRubin(Edges, model, n_steps, sigma=sigma)
