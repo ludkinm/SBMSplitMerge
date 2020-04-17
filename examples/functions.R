@@ -44,7 +44,7 @@ PerfectSimulation <- function(Edges, model, n_steps, algorithm="rj", sigma=0.1){
            ggplot(perfect, aes(x, upper, lower)) +
            geom_line(aes(y = lower, colour = "lower")) +
            geom_line(aes(y = upper, colour = "upper")) +
-           xlab("Step") + ylab("Number of blocks") +
+           xlab("Iteration") + ylab("Number of blocks") +
            labs(color="Chain") +
            scale_y_log10() + theme_gray(base_size = 20),
            width=5, height=5)
