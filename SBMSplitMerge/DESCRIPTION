@@ -1,9 +1,14 @@
 Package: SBMSplitMerge
-Title: Inference for the restricted Stochastic Block Model
-Version: 0.1
+Title: Inference for a Generalised Stochastic Block Model with a Split Merge Sampler
+Version: 1.1.0
 Authors@R: person("Matthew", "Ludkin", email = "m.ludkin1@lancaster.ac.uk", role = c("aut", "cre"))
-Description: Perform inference for restricted SBMs using an RJMCMC split-merge sampling scheme or a dirichlet process sampler using refclasses
+Description: Perform inference for a Generalised SBM using an Reverisible jump MCMC split-merge sampling scheme or a Dirichlet Process sampler.
 Depends: R (>= 3.1.0)
 License: MIT + file LICENSE
 LazyData: true
 RoxygenNote: 6.1.1
+Imports: ggplot2, reshape2
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

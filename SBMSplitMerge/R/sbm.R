@@ -20,30 +20,41 @@ sbm <- function(blocks, params){
     out
 }
 
+#' print an SBM object
+#' @param x an SBM object
+#' @param ... additional arguments for formatting
 #' @export
-print.sbm <- function(sbm,...)
-    cat(format(sbm,...), "\n")
+print.sbm <- function(x,...)
+    cat(format(x,...), "\n")
 
-#' @export
-format.sbm <- function(sbm)
-    c("SBM object:\n\n",format(sbm$blocks), "\n\n", format(sbm$params))
+format.sbm <- function(sbm,...)
+    c("SBM object:\n\n",format(sbm$blocks,...), "\n\n", format(sbm$params,...))
 
+#' plot an SBM object as an image
+#' @param x an SBM object
+#' @param col colors as in plot.default
+#' @param axes axes as in plot.default
+#' @param ... additional arguments to plot
+#' @seealso plot.default
 #' @export
-plot.sbm <- image.sbm <- function(sbm, col, axes=FALSE,...){
+plot.sbm <- image.sbm <- function(x, col, axes=FALSE, ...){
     if(missing(col))
-        col <- c(0,rainbow(sbm$kappa))
-    plot(sbm$blocks, axes=axes, col=col, ...)
-    plot(sbm$params, col=rep(col, each=sbm$params$dtheta), ...)
+        col <- c(0,rainbow(x$kappa))
+    plot(x$blocks, axes=axes, col=col, ...)
+    plot(x$params, col=rep(col, each=x$params$dtheta), ...)
 }
 
+#' check if an R object is an SBM object
+#' @param x an R object
+#' @return TRUE if x is an SBM object
 #' @export
-is.sbm <- function(sbm)
-    inherits(sbm, "sbm")
+is.sbm <- function(x)
+    inherits(x, "sbm")
 
 #' simulate an sbm
-#' @param numnode number of nodes
+#' @param numnodes umber of nodes
 #' @param mod a model object
 #' @return an sbm object
 #' @export
-rsbm <- function(numnodes, mod, ...)
-    sbm(tmp <- rblocks(numnodes, mod$blocks, ...), rparams(tmp$kappa, mod$params))
+rsbm <- function(numnodes, mod)
+    sbm(tmp <- rblocks(numnodes, mod$blocks), rparams(tmp$kappa, mod$params))

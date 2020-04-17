@@ -13,48 +13,61 @@ drawparams <- function(currsbm, Edges, Mod, sigma=0.1){
     currsbm
 }
 
+#' draw parameters
+#' @param x object for dispatch
+#' @param ... additional arguments for method
 #' @export
 drawparam <- function(x, ...)
     UseMethod("drawparam", x)
 
 #' simulate parameter for the kth parameter
-#' @param currsbm current state of sbm under the MCMC chain
+#' @param x current state of sbm under the MCMC chain
 #' @param k index of parameter to update
 #' @param Mod model object for the sbm
 #' @param sigma parameter for drawparam
+#' @param ... additional arguments for drawparam.params
 #' @return list(proposed sbm, log-jacobian term)
 #' @export
-drawparam.sbm <- function(currsbm, k, Mod, sigma){
-    p <- drawparam(currsbm$params, currsbm$blocks, k, Mod$params, sigma)
-    list(prop=sbm(currsbm$blocks, p$prop), logjac=p$logjac)
+drawparam.sbm <- function(x, k, Mod, sigma, ...){
+    p <- drawparam(x$params, x$blocks, k, Mod$params, sigma, ...)
+    list(prop=sbm(x$blocks, p$prop), logjac=p$logjac)
 }
 
 #' simulate parameter for the kth parameter
-#' @param Params current params object
+#' @param x current params object
 #' @param Blocks current blocks object
 #' @param k index of parameter to update
 #' @param Parammod model object for the parameters
 #' @param sigma parameter for rw
+#' @param ... additional arguments (unused)
 #' @return list(proposed params, log-jacobian term)
 #' @export
-drawparam.params <- function(Params, Blocks, k, Parammod, sigma){
-    propparams <- Params
+drawparam.params <- function(x, Blocks, k, Parammod, sigma, ...){
     if(k == 0){
+        ## if operating on the between-block parameter...
         if(Blocks$kappa > 1){
-            tmp <- rw(Params$theta0, Parammod, sigma)
+            ## ...and the number of blocks is more than 1
+            ## do a random walk on the between-block parameter
+            tmp <- rw(x$theta0, Parammod, sigma)
         } else{
+            ## ...and the number of blocks is 1
+            ## draw from the prior
             tmp <- rparam(0, Parammod)
         }
-        propparams$theta0 <- tmp$prop
+        x$theta0 <- tmp$prop
     } else{
+        ## if operating on a within block parameter...
         if(Blocks$sizes[k] > 1){
-            tmp <- rw(Params$thetak[k,], Parammod, sigma)
+            ## ...and the block has more than 1 node
+            ## do a random walk on the parameter
+            tmp <- rw(x$thetak[k,], Parammod, sigma)
         } else{
+            ## else draw from the prior
             tmp <- rparam(k, Parammod)
         }
-        propparams$thetak[k,] <- tmp$prop
+        x$thetak[k,] <- tmp$prop
     }
-    list(prop=propparams, logjac = tmp$logjac)
+    list(prop=x, logjac = tmp$logjac)
 }
 
 #' random walk
@@ -62,7 +75,7 @@ drawparam.params <- function(Params, Blocks, k, Parammod, sigma){
 #' @param pm parammodel - contains the transform/map to project parameter to the real line
 #' @param sigma - scale of random walk
 rw <- function(p, pm, sigma){
-    pprime <- pm$invt(pm$t(p) + rnorm(length(p), 0, sigma))
+    pprime <- pm$invt(pm$t(p) + stats::rnorm(length(p), 0, sigma))
     logjac <- pm$loggradt(pprime) - pm$loggradt(p)
     list(prop = pprime, logjac=logjac)
 }

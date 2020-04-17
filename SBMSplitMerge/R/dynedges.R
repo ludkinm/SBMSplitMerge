@@ -1,11 +1,13 @@
 ## class
-dynedges <- function(E, obtimes){
+dynedges <- function(E, obtimes, sym){
     out <- list(
         E = E
        ,
         N = dim(E)[2]
        ,
         obtimes = obtimes
+       ,
+        sym = sym
        ,
         T = length(obtimes)
        ,
@@ -42,7 +44,7 @@ plot.dynedges <- image.dynedges <- function(dynedges, sbm, animate=F, ...){
         }
 }
 
-## rands
+# simulate dynamic edges
 rdynedges <- function(x, ...)
     UseMethod("rdynedges", x)
 
@@ -50,7 +52,7 @@ rdynedges.sbm <- function(sbm, obtimes, ...)
     rdynedges.params(sbm$params, sbm$blocks, obtimes, ...)
 
 rdynedges.params <- function(params, blocks, obtimes, sym=TRUE, ...){
-    x <- simedges(params, parammat(blocks, params), blocks$N, obtimes, ...)
+    x <- redges(params, parammat(blocks, params), blocks$N, obtimes, ...)
     if(sym)
         x <- makesymmetric(x)
     dynedges(x, obtimes, sym)
@@ -63,35 +65,35 @@ rctsbm <- function(obtimes, theta){
     phi <- theta[1]
     rho <- theta[2]
     trans <- function(now, state)
-        now + rexp(1, rates[state+1])
+        now + stats::rexp(1, rates[state+1])
     nt    <- length(obtimes)
     rates  <- c(phi, 1-phi)*rho
-    states <- rbinom(1,1,phi) ## initial state
+    states <- stats::rbinom(1,1,phi) ## initial state
     jumptime <- obtimes[1]
     while(jumptime[1] < obtimes[nt]){
         ## then do a jump - ie swap states
         jumptime <- c(trans(jumptime[1], states[1]), jumptime)
         states   <- c(1-states[1], states)
     }
-    stepfun(rev(jumptime), rev(c(states,NA)))(obtimes)
+    stats::stepfun(rev(jumptime), rev(c(states,NA)))(obtimes)
 }
 
 dctsbm <- function(x, ...)
     UseMethod("dctsbm", x)
 
 dctsbm.default <- function(eij, dt, theta)
-    dbinom(eij[1], 1, theta[1], log=T) + sum(dbinom(eij[-1], 1, theta[1] + (eij[-length(eij)] - theta[1]) * exp(-dt * theta[2]), log=T))
+    stats::dbinom(eij[1], 1, theta[1], log=T) + sum(stats::dbinom(eij[-1], 1, theta[1] + (eij[-length(eij)] - theta[1]) * exp(-dt * theta[2]), log=T))
 
 dctsbm.matrix <- function(E, dt, theta)
-    dbinom(E[1,], 1, theta[1], log=T) + colSums(dbinom(E[-1,], 1, theta[1] + (E[-dim(E)[1],] - theta[1]) * exp(-dt * theta[2]), log=T))
+    stats::dbinom(E[1,], 1, theta[1], log=T) + colSums(stats::dbinom(E[-1,], 1, theta[1] + (E[-dim(E)[1],] - theta[1]) * exp(-dt * theta[2]), log=T))
 
 dctsbm.array <- function(E, dt, theta){
     last <- dim(E)[1]
     ind1 <- rep(1, last-1)
     ind2 <- rep(2, last-1)
     p <- theta[ind1,,] + (E[-last,,] - theta[ind1,,]) * exp(-dt * theta[ind2,,])
-    dbinom(E[1,,], 1, theta[1,,], log=T) + colSums(dbinom(E[-1,,], 1, p, log=T))
+    stats::dbinom(E[1,,], 1, theta[1,,], log=T) + colSums(stats::dbinom(E[-1,,], 1, p, log=T))
 }
 
 dctsbm2 <- function(dt,Enow,Enext,phi,rho)
-    dbinom(Enext, 1, phi + (Enow - phi) * exp(-dt * rho), log=TRUE)
+    stats::dbinom(Enext, 1, phi + (Enow - phi) * exp(-dt * rho), log=TRUE)

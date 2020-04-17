@@ -1,12 +1,13 @@
-
 #' helper function for trace plots
 #' @importFrom reshape2 melt
-#' @importFrom ggplot2 ggplot aes geom_raster theme scale_x_continuous scale_y_continuous element_blank
+#' @importFrom ggplot2 ggplot aes geom_raster theme scale_x_continuous scale_y_continuous element_blank .data
+#' @param mat matrix to plot as an image using ggplot2
+#' @param discrete are the values discrete
 postimage <- function(mat, discrete=FALSE){
     df <- reshape2::melt(mat)
-    a <- ggplot2::aes(Var2, Var1, fill=value)
+    a <- ggplot2::aes(.data$Var2, .data$Var1, fill=.data$value)
     if(discrete)
-        a <- ggplot2::aes(Var2, Var1, fill=factor(value))
+        a <- ggplot2::aes(.data$Var2, .data$Var1, fill=factor(.data$value))
     p <- ggplot2::ggplot(df, a) + ggplot2::geom_raster() +
         ggplot2::scale_x_continuous(expand = c(0, 0)) +
         ggplot2::scale_y_continuous(expand = c(0, 0)) +
@@ -16,13 +17,13 @@ postimage <- function(mat, discrete=FALSE){
 }
 
 #' plot a trace of the blocks from MCMC samples
-#' @importFrom ggplot2 xlab ylab guides guide_legend
+#' @importFrom ggplot2 xlab ylab scale_fill_discrete
 #' @param postz output from sampler
 #' @return ggplot object of node assignments against iteration number
 #' @export
 blocktrace <- function(postz){
     p <- postimage(postz, TRUE)
-    p <- p + ggplot2::ylab("Node") + ggplot2::xlab("Step") + ggplot2::guides(fill=ggplot2::guide_legend(title="Block"))
+    p <- p + ggplot2::ylab("Node") + ggplot2::xlab("Iteration") + ggplot2::scale_fill_discrete(name="Block")
     p
 }
 
@@ -32,7 +33,7 @@ blocktrace <- function(postz){
 #' @return ggplot object of kappa against iteration number
 #' @export
 numblockstrace <- function(postk){
-    ggplot2::ggplot(data=data.frame(step=seq_along(postk), kappa=postk), ggplot2::aes(x=step, y=kappa)) + ggplot2::geom_line()
+    ggplot2::ggplot(data=data.frame(Iteration=seq_along(postk), K=postk), ggplot2::aes(x=.data$Iteration, y=.data$K)) + ggplot2::geom_line()
 }
 
 
@@ -46,9 +47,14 @@ numblockstrace <- function(postk){
 paramtrace <- function(theta, truetheta){
     ind <- colSums(apply(theta, 2, is.na)) != dim(theta)[3]
     theta[,ind,][is.na(theta[,ind,])] <- 0
-    dft <- reshape2::melt(theta[,ind,,drop=FALSE], id=Dimension)
+    dft <- reshape2::melt(theta[,ind,,drop=FALSE], id=.data$Dimension)
     names(dft) <- c("Dimension", "Block", "Step", "Value")
-    p <- ggplot2::ggplot(dft, ggplot2::aes(x=Step, y=Value, colour=factor(Block))) + ggplot2::geom_line()
+    dft$Block <- as.factor(dft$Block - 1)
+    p <- ggplot2::ggplot(dft, ggplot2::aes(x=.data$Step, y=.data$Value, color=.data$Block)) +
+        ggplot2::geom_line() +
+        ggplot2::xlab("Iteration") +
+        ggplot2::ylab("Theta") +
+        ggplot2::facet_grid(. ~ .data$Dimension)
     if(!missing(truetheta))
         p <- p + ggplot2::geom_hline(yintercept=truetheta)
     p
@@ -78,19 +84,20 @@ modeblocks <- function(postz)
 #' @export
 #' @param output from sampler
 #' @param burnin burn-in period (a vector of iteration numbers to subset outputs)
+#' @param truetheta optional, if provided as a vector, they are added to the parameter plot
 #' @return list of ggplot objects (with descriptive names)
 eval_plots <- function(output, burnin, truetheta){
     if(missing(burnin))
         burnin <- 1:output$nsteps
     nb <- numblockstrace(output$postk[burnin])
     pp <- postpairs(output$postz[,burnin])
-    pp_plot <- postimage(pp)
+    pp_plot <- postimage(pp) + ggplot2::xlab("Node") + ggplot2::ylab("Node") + ggplot2::scale_fill_continuous(name = "Probability")
     ## order for posterior plotting
     ind <- order(colSums(pp))
-    pp_sorted <- postimage(pp[ind,ind])
+    pp_sorted <- postimage(pp[ind,ind]) + ggplot2::xlab("Node") + ggplot2::ylab("Node") + ggplot2::scale_fill_continuous(name = "Probability")
     pt <- paramtrace(output$postt[,,burnin, drop=FALSE], truetheta)
     pt_sorted <- paramtrace(output$postt[,ind,burnin, drop=FALSE], truetheta)
     bt <- blocktrace(output$postz[,burnin])
     bt_sorted <- blocktrace(output$postz[ind,burnin])
-    list(num_blocks_trace = nb, post_pairs = pp_plot, post_pairs_sorted = pp_sorted, blocks_trace = bt, param_trace = pt, param_trace_sorted = pt_sorted, blocks_trace_sorted = bt_sorted, sortind = ind, pp=pp)
+    list(num_blocks_trace = nb, post_pairs = pp_plot, post_pairs_sorted = pp_sorted, blocks_trace = bt, param_trace = pt, param_trace_sorted = pt_sorted, blocks_trace_sorted = bt_sorted, pp=pp, sortind = ind)
 }

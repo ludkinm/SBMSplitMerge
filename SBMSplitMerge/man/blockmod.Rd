@@ -4,7 +4,7 @@
 \alias{blockmod}
 \title{create a block-model object}
 \usage{
-blockmod(gamma, fixkappa, rblocks, logdblocks, dmarg)
+blockmod(gamma, fixkappa, rblocks, logdblocks, dcond)
 }
 \arguments{
 \item{gamma}{parameters for the block model}
@@ -15,7 +15,7 @@ blockmod(gamma, fixkappa, rblocks, logdblocks, dmarg)
 
 \item{logdblocks}{log density for the number of blocks distribution}
 
-\item{dmarg}{marginal density for the block assignments}
+\item{dcond}{conditional density for the block assignments}
 }
 \value{
 a bockmod object

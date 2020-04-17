@@ -1,7 +1,7 @@
 #' draw blocks in Dirichlet process sampler
 #' @param currsbm current SBM state
-#' @param edges an edges object
-#' @param mod a model object
+#' @param Edges an edges object
+#' @param Mod a model list
 #' @return updated sbm
 drawblocks.dp <- function(currsbm, Edges, Mod){
     for(i in 1:currsbm$numnodes)
@@ -12,8 +12,8 @@ drawblocks.dp <- function(currsbm, Edges, Mod){
 #' draw blocks in Dirichlet process sampler
 #' @param i node to update
 #' @param currsbm current SBM state
-#' @param edges an edges object
-#' @param mod a model object
+#' @param Edges an edges object
+#' @param Mod a model object
 #' @return updated sbm
 drawblock.dp <- function(i, currsbm, Edges, Mod){
     ## current values
@@ -25,7 +25,7 @@ drawblock.dp <- function(i, currsbm, Edges, Mod){
 
     ## probability calculations
     p0 <- nodelike(Edges, currsbm, Mod, i)
-    p1 <- margprior(currsbm$blocks, Mod$blocks, i)
+    p1 <- condprior(currsbm$blocks, Mod$blocks, i)
     p <- p0+p1
 
     ## choose new block

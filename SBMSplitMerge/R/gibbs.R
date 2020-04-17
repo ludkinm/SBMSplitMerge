@@ -16,6 +16,6 @@ drawblocks.gibbs <- function(Sbm, Edges, Mod){
 #' @param Mod a model object
 #' @return updated sbm object
 drawblock.gibbs <- function(i, Sbm, Edges, Mod){
-    p <- margprior(Sbm$blocks, Mod$blocks, i) + nodelike(Edges, Sbm, Mod, i)[1:Sbm$kappa]     ## assume that we can't make a new block here for rjmcmc and vanilla gibbs
+    p <- condprior(Sbm$blocks, Mod$blocks, i) + nodelike(Edges, Sbm, Mod, i)[1:Sbm$kappa]     ## assume that we can't make a new block here for rjmcmc and vanilla gibbs
     updateblock(Sbm, rcat(1, normaliselogs(p)), i)
 }

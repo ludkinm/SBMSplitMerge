@@ -1,13 +1,10 @@
 #' calculate the marginal likelihood for a node for samplers using conjugate models
-#' @param znoti a matrix of blockassignments without node i
+#' @title Marginal likelihood model for Bernoulli distributed edges
+#' @param znoi a matrix of blockassignments without node i
 #' @param ei edge-states incident to i
 #' @param parammod a parammod object
 #' @export
-marglike <- function(znoi, ei, parammod, ...)
-    UseMethod("marglike", parammod)
-
-#' @export
-marglike_bern <- function(znoi, ei, parammod, ...){
+marglike_bern <- function(znoi, ei, parammod){
     ## block sizes
     nk  <- rowSums(znoi)
     mk <- c(ei %*% t(znoi))
@@ -21,8 +18,13 @@ marglike_bern <- function(znoi, ei, parammod, ...){
     logp
 }
 
+#' calculate the marginal likelihood for a node for samplers using conjugate models
+#' @title Marginal likelihood model for Poisson distributed edges
+#' @param znoi a matrix of blockassignments without node i
+#' @param ei edge-states incident to i
+#' @param parammod a parammod object
 #' @export
-marglike_pois <- function(znoi, ei, parammod, ...){
+marglike_pois <- function(znoi, ei, parammod){
     ## block sizes
     nk <- rowSums(znoi)
     mk <- rbind(ei %*% t(znoi), nk)
@@ -35,8 +37,13 @@ marglike_pois <- function(znoi, ei, parammod, ...){
     logp
 }
 
+#' calculate the marginal likelihood for a node for samplers using conjugate models
+#' @title Marginal likelihood model for Normal distributed edges
+#' @param znoi a matrix of blockassignments without node i
+#' @param ei edge-states incident to i
+#' @param parammod a parammod object
 #' @export
-marglike_norm <- function(znoi, ei, parammod, ...){
+marglike_norm <- function(znoi, ei, parammod){
     rho0 <- parammod$alpha[1]
     nu0  <- parammod$alpha[2]
     be0  <- parammod$alpha[3]

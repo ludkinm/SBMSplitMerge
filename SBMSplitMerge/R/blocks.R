@@ -25,57 +25,70 @@ blocks <- function(z, kappa){
 #' @param fixkappa bool - is kappa fixed or can it vary
 #' @param rblocks function(n, gamma) samples node memberships from the block model, takes gamma as a parameter
 #' @param logdblocks log density for the number of blocks distribution
-#' @param dmarg marginal density for the block assignments
+#' @param dcond conditional density for the block assignments
 #' @return a bockmod object
 #' @export
-blockmod <- function(gamma, fixkappa, rblocks, logdblocks, dmarg){
+blockmod <- function(gamma, fixkappa, rblocks, logdblocks, dcond){
     out <- list(
         gamma = gamma,
         fixkappa = fixkappa,
         rblocks = rblocks,
         logdblocks = logdblocks,
-        dmarg = dmarg
+        dcond = dcond
     )
     class(out) <- c(class(out), "blockmod")
     out
 }
 
 #' plots a block object
-#' @param blocks a blocks object to plot
+#' @param x a blocks object to plot
 #' @param col colors for the plot
-#' @param xaxt='n' override 'image' parameters
-#' @param yaxt='n' override 'image' parameters
-#' @param xlab="" override 'image' parameters
-#' @param ylab="" override 'image' parameters
-#' @param ... additional parameters for 'image'
+#' @param xaxt override \code{image} parameters
+#' @param yaxt override \code{image} parameters
+#' @param xlab override \code{image} parameters
+#' @param ylab override \code{image} parameters
+#' @param ... additional parameters for \code{image}
+#' @importFrom graphics image plot
+#' @importFrom grDevices rainbow
 #' @export
-plot.blocks <- image.blocks <- function(blocks, col, xaxt='n', yaxt='n', xlab="", ylab="", ...){
-    tmp <- zmat(blocks)
+plot.blocks <- function(x, col, xaxt='n', yaxt='n', xlab="", ylab="", ...){
+    tmp <- zmat(x)
     if(missing(col)){
-        if(blocks$kappa > 1){
-            col <- c(0, rainbow(blocks$kappa))
+        if(x$kappa > 1){
+            col <- c(0, grDevices::rainbow(x$kappa))
         } else{
-            col <- rainbow(blocks$kappa)
+            col <- grDevices::rainbow(x$kappa)
         }
     }
-    n <- 1:blocks$numnodes-0.5
-    image(n, n, t(tmp) %*% ((1:blocks$kappa) * tmp), col=col,
+    n <- 1:x$numnodes-0.5
+    graphics::image(n, n, t(tmp) %*% ((1:x$kappa) * tmp), col=col,
           xaxt=xaxt, yaxt=yaxt, xlab=xlab, ylab=ylab, ...)
 }
 
+#' @rdname plot.blocks
 #' @export
-print.blocks <- function(blocks,...)
-    cat(format(blocks, ...), "\n")
+image.blocks <- plot.blocks
 
+#' print a \code{blocks} object
+#' @param x a \code{blocks} object
+#' @param ... additional arguments for formatting
 #' @export
-format.blocks <- function(blocks,...)
+print.blocks <- function(x, ...)
+    cat(format(x, ...), "\n")
+
+format.blocks <- function(blocks, ...)
     c("blocks object\nkappa = ", blocks$kappa, "\nNumber of nodes =", blocks$numnodes,"\nblock sizes:\n", blocks$sizes)
 
+#' check if an \code{R} object is a \code{blocks} object
+#' @param x an \code{R} object to dispatch on
+#' @param ... additional arguments
 #' @export
-is.blocks <- function(blocks)
-    inherits(blocks, "blocks")
+is.blocks <- function(x, ...)
+    inherits(x, "blocks")
 
 #' converts x to a matrix of block assignments
+#' @param x object for dispatch
+#' @param ... additional arguments for method
 zmat <- function(x, ...)
     UseMethod("zmat", x)
 
@@ -103,31 +116,35 @@ zmat.blocks <- function(blocks, kappa){
 }
 
 #' converts the block assignment under sbm to a matrix of block assignments
-#' @param sbm an sbm object
+#' @param Sbm an sbm object
 #' @return matrix with K rows and a 1 at (k,i) if node i is in block k under the sbm model
-zmat.sbm <- function(sbm)
-    zmat(sbm$blocks)
+zmat.sbm <- function(Sbm)
+    zmat(Sbm$blocks)
 
 #' density for the block assignments in x
+#' @param x object for dispatch
+#' @param ... additional arguments for method
 #' @export
-dblocks <- function(x,...)
+dblocks <- function(x, ...)
     UseMethod("dblocks", x)
 
 #' density for the block assignments
-#' @param sbm an sbm model which contains the block state
-#' @param mod a model for the block assignments
+#' @param x an sbm model which contains the block state
+#' @param mod a list containing an element mod$blocks a blockmodel
+#' @param ... additional arguments for dblocks.blocks
 #' @return The density for the block assignments in sbm under mod
 #' @export
-dblocks.sbm <- function(sbm, mod)
-    dblocks.blocks(sbm$blocks, mod$blocks)
+dblocks.sbm <- function(x, mod, ...)
+    dblocks.blocks(x$blocks, mod$blocks, ...)
 
 #' density for the block assignments
-#' @param blocks a blocks object containing block assignments
+#' @param x a blocks object containing block assignments
 #' @param blockmod a blockmod object containing a model for the block assignments
+#' @param ... additional arguments for blockmod$logdblocks
 #' @return The density for the block assignments in blocks under blockmod
 #' @export
-dblocks.blocks <- function(blocks, blockmod, ...)
-    blockmod$logdblocks(blocks, blockmod$gamma)
+dblocks.blocks <- function(x, blockmod, ...)
+    blockmod$logdblocks(x, blockmod$gamma, ...)
 
 #' random block assignment generation
 #' @param n number of nodes
@@ -143,17 +160,20 @@ rblocks <- function(n, BM, sorted=FALSE, ...){
     blocks(z)
 }
 
-#' Calculate the marginal density for block assignment of node i under the model in BM and block assignments in blocks
+#' Calculate the conditional density for block assignment of node i under the model in BM and block assignments in blocks
 #' @param blocks blocks object
 #' @param BM a blockmod object
 #' @param i a node index
-#' @return marginal density for block assignment of node i under the model in BM and block assignments in blocks
+#' @param ... additional arguments for blockmodel$dcond
+#' @return conditional density for block assignment of node i under the model in BM and block assignments in blocks
 #' @export
-margprior <- function(blocks, BM, i, ...)
-    BM$dmarg(blocks, BM$gamma, i)
+condprior <- function(blocks, BM, i, ...)
+    BM$dcond(blocks, BM$gamma, i, ...)
 
 
 #' Update the block assignment of a node
+#' @param x object for dispatch
+#' @param ... additional arguments for method
 updateblock <- function(x,...)
     UseMethod("updateblock")
 
@@ -218,7 +238,7 @@ dma <- function(gamma, delta){
         c(gamma, delta),
         FALSE,
         function(n, gamma, ...){
-            kappa <- rpois(1, gamma[2]) + 1
+            kappa <- stats::rpois(1, gamma[2]) + 1
             omega <- rdirichlet(1, rep(gamma[1], kappa))
             rcat(n, c(omega))
         },
@@ -226,7 +246,7 @@ dma <- function(gamma, delta){
             gam <- gamma[1]
             del <- gamma[2]
             kap <- blocks$kappa
-            dpois(kap-1, del, log=T) + lgamma(kap * gam) - kap * lgamma(gam) + sum(lgamma(blocks$sizes + gam)) - lgamma(blocks$numnodes + kap*gam)
+            stats::dpois(kap-1, del, log=T) + lgamma(kap * gam) - kap * lgamma(gam) + sum(lgamma(blocks$sizes + gam)) - lgamma(blocks$numnodes + kap*gam)
         },
         function(Blocks, gamma, i){
             ## For a fixed number of blocks, the conditional distribution that node
@@ -234,13 +254,12 @@ dma <- function(gamma, delta){
             kappa <- Blocks$kappa
             Mk <- Blocks$sizes - c(zmat(Blocks$z[i], kappa))
             return( log(Mk + gamma[1]) - log(sum(Mk) + kappa*gamma[1]) )
-            ## p   <- log( eta/(eta+gamma[2]) * c((Mk + gamma[1])/(M+eta*gamma[1]),0) + gamma[2]/(eta+gamma[2]) * beta(gamma[1] + 1, M+eta*gamma[1])/beta(gamma[1], eta*gamma[1])*c(1+Mk/gamma[1], 1))
-            ## p
         }
     )
 }
 
 #' compute lgamma with lgamma(0) = -Inf
+#' @param x numeric value to compute lgamma
 mylgamma <- function(x)
     sapply(x, function(x) ifelse(x==0, -Inf, lgamma(x)))
 
