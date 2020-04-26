@@ -1,21 +1,24 @@
-#' Gibbs step for drawing new block assignments
-#' @param SBM an \code{sbm} object
-#' @param Edges an \code{edges} object
-#' @param Mod a model list
-#' @return updated \code{sbm} object
-drawblocks.gibbs <- function(SBM, Edges, Mod){
-    for(i in 1:SBM$numnodes)
-        SBM <- drawblock.gibbs(i, SBM, Edges, Mod)
-    SBM
+#' @title Gibbs-like reassignment of nodes to the current set of blocks
+#' @description Sweep through the set of nodes and reassign to the current set of blocks given the current number of blocks
+#' @param currsbm an \code{\link{sbm}} object
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} object
+#' @return updated \code{\link{sbm}} object with new block assignments
+drawblocks.gibbs <- function(currsbm, edges, sbmmod){
+    for(i in 1:currsbm$numnodes)
+        currsbm <- drawblock.gibbs(i, currsbm, edges, sbmmod)
+    currsbm
 }
 
-#' Gibbs step for drawing new block assignments
+#' @title Gibbs-like reassignment of nodes to the current set of blocks
+#' @description Reassign node `i`  to the current set of blocks given the current number of blocks and the other block assignments
 #' @param i the node to reassign
-#' @param SBM an \code{sbm} object
-#' @param Edges an \code{edges} object
-#' @param Mod a model list
-#' @return updated \code{sbm} object
-drawblock.gibbs <- function(i, SBM, Edges, Mod){
-    p <- condprior(SBM$blocks, Mod$blocks, i) + nodelike(Edges, SBM, Mod, i)[1:SBM$kappa]     ## assume that we can't make a new block here for rjmcmc and vanilla gibbs
-    updateblock(SBM, rcat(1, normaliselogs(p)), i)
+#' @param currsbm an \code{\link{sbm}} object
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} object
+#' @return updated \code{sbm} object with new block assignment for i
+drawblock.gibbs <- function(i, currsbm, edges, sbmmod){
+    p <- sbmmod$block$dcond(currsbm$blocks, i) +
+        nodelike(currsbm$blocks, currsbm$params, edges, i, sbmmod)[1:currsbm$blocks$kappa]
+    updateblock(currsbm, i, rcat(1, normaliselogs(p)))
 }

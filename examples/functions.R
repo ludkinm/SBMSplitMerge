@@ -1,13 +1,13 @@
 library(ggplot2)
 
 ## run a single chain producing output plots and saving to disk
-Run <- function(Edges, model, n_steps, n_burn, algorithm="rj", sigma=0.1){
+Run <- function(Edges, model, n_steps, n_burn, algorithm="rj", sigma, statusfreq){
     fname <- paste0(model$name, "/", algorithm, "_post_", n_steps)
     if(missing(n_burn))
         n_burn <- n_steps/2
-    sampler_output <- sampler(Edges, model, n_steps, algorithm, sigma,
-                              currsbm=rsbm(Edges$numnodes, model))
-    plots <- eval_plots(sampler_output, n_burn1:n_steps)
+    sampler_output <- sampler(Edges, model, n_steps, algorithm, sigma, statusfreq,
+                              currsbm=model$r(Edges$numnodes))
+    plots <- eval_plots(sampler_output, 1:n_steps)
     post_theta <- sampler_output$postt[,,n_burn:n_steps, drop=FALSE]
     post_theta_summary <- array(dim=c(dim(post_theta)[1], 3, dim(post_theta)[2]))
     for(i in 1:dim(post_theta)[1])
@@ -31,10 +31,10 @@ Run <- function(Edges, model, n_steps, n_burn, algorithm="rj", sigma=0.1){
 PerfectSimulation <- function(Edges, model, n_steps, algorithm="rj", sigma=0.1){
     ## all in one block
     lower <- sampler(Edges, model, n_steps, algorithm, sigma,
-                     currsbm=sbm(blocks(rep(1, Edges$numnodes)), rparams(1, model$params)))
+                     currsbm=sbm(blocks(rep(1, Edges$numnodes)), model$param$r(1)))
     ## all in seperate blocks
     upper <- sampler(Edges, model, n_steps, algorithm, sigma,
-                     currsbm=sbm(blocks(1:Edges$numnodes), rparams(Edges$numnodes, model$params)))
+                     currsbm=sbm(blocks(1:Edges$numnodes), model$param$r(Edges$numnodes)))
     save(lower, upper, Edges, model, n_steps, algorithm, sigma,
          file=paste0(model$name, "/", algorithm, "_perfect_post_", n_steps, ".RDa"))
     ## plots

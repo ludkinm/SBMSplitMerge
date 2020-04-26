@@ -2,7 +2,7 @@
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot aes geom_raster theme scale_x_continuous scale_y_continuous element_blank .data
 #' @param mat matrix to plot as an image using ggplot2
-#' @param discrete are the values discrete
+#' @param discrete are the values discrete?
 postimage <- function(mat, discrete=FALSE){
     df <- reshape2::melt(mat)
     a <- ggplot2::aes(.data$Var2, .data$Var1, fill=.data$value)
@@ -86,6 +86,10 @@ modeblocks <- function(postz)
 #' @param burnin burn-in period (a vector of iteration numbers to subset outputs)
 #' @param truetheta optional, if provided as a vector, they are added to the parameter plot
 #' @return list of ggplot objects (with descriptive names)
+#' @examples
+#' \dontrun{output <- sampler(...)}
+#' \dontrun{ps <- eval_plots(output)}
+#' \dontrun{ps$post_pairs}
 eval_plots <- function(output, burnin, truetheta){
     if(missing(burnin))
         burnin <- 1:output$nsteps
@@ -99,5 +103,23 @@ eval_plots <- function(output, burnin, truetheta){
     pt_sorted <- paramtrace(output$postt[,ind,burnin, drop=FALSE], truetheta)
     bt <- blocktrace(output$postz[,burnin])
     bt_sorted <- blocktrace(output$postz[ind,burnin])
-    list(num_blocks_trace = nb, post_pairs = pp_plot, post_pairs_sorted = pp_sorted, blocks_trace = bt, param_trace = pt, param_trace_sorted = pt_sorted, blocks_trace_sorted = bt_sorted, pp=pp, sortind = ind)
+    list(
+        num_blocks_trace = nb
+       ,
+        post_pairs = pp_plot
+       ,
+        post_pairs_sorted = pp_sorted
+       ,
+        blocks_trace = bt
+       ,
+        param_trace = pt
+       ,
+        param_trace_sorted = pt_sorted
+       ,
+        blocks_trace_sorted = bt_sorted
+       ,
+        pp=pp
+       ,
+        sortind = ind
+    )
 }

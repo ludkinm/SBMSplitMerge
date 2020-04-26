@@ -1,63 +1,74 @@
-#' draw blocks in Dirichlet process sampler
-#' @param currsbm current \code{sbm} object
-#' @param Edges an edges object
-#' @param Mod a model list
-#' @return updated \code{sbm}
-drawblocks.dp <- function(currsbm, Edges, Mod){
+#' @title Draw block memberships
+#' @description Draw block memberships in a Dirichlet process sampler
+#' @details iteratively updates the block  assignment of each node using a Dirichlet process update move
+#' @param currsbm current \code{\link{sbm}} object
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} object
+#' @return updated \code{sbm} object
+drawblocks.dp <- function(currsbm, edges, sbmmod){
     for(i in 1:currsbm$numnodes)
-        currsbm <- drawblock.dp(i, currsbm, Edges, Mod)
+        currsbm <- drawblock.dp(i, currsbm, edges, sbmmod)
     currsbm
 }
 
-#' draw blocks in Dirichlet process sampler
+#' @title Draw block membership
+#' @description Draw block membership in a Dirichlet process sampler
+#' @details sample a new block assignment for i under a Dirichlet process.
+#' Care needs to be taken with singleton blocks to update the parameter model in currsbm.
 #' @param i node to update
 #' @param currsbm current \code{sbm} object
-#' @param Edges an edges object
-#' @param Mod a model object
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} object
 #' @return updated \code{sbm} object
-drawblock.dp <- function(i, currsbm, Edges, Mod){
-    ## current values
-    propz <- as.numeric(as.character(currsbm$blocks$z))
-    currb <- propz[i]
-    pthetak <- currsbm$params$thetak
-    ptheta0 <- currsbm$params$theta0
-    pblocks <- currsbm$blocks
+#' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
+drawblock.dp <- function(i, currsbm, edges, sbmmod){
+    ## current block of i
+    currb <- as.numeric(as.character(currsbm$blocks$z[i]))
 
     ## probability calculations
-    p0 <- nodelike(Edges, currsbm, Mod, i)
-    p1 <- condprior(currsbm$blocks, Mod$blocks, i)
-    p <- p0+p1
+    p <- nodelike(currsbm$blocks, currsbm$params, edges, i, sbmmod) +
+            sbmmod$block$dcond(currsbm$blocks, i)
 
     ## choose new block
     propb <- rcat(1, normaliselogs(p))
-    propz[i] <- propb
 
-    ## Cases
-    ## 1) (propb == currb) - do nothing i is assigned to its current block
-    ## 2) (propb != currb) and size[currb] == 1 and propb == currkappa+1 - currb drops out of model propb added to model -> but labels dont matter so just simulate a new parameter
-    ## 3) (propb != currb) and size[currb] > 1  and propb == currkappa+1 - i moves from currb to a new block - simulate a new parameter for the new block
-    ## 4) (propb != currb) and size[currb] == 1 and propb != currkappa+1 - currb drops out of model
-    ## 5) (propb != currb) and size[currb] > 1  and propb != currkappa+1 - i moves from currb to propb
-
+    ## if (propb == currb) - do nothing i is assigned to its current block
+    ## otherwise:
     if( propb != currb ){
-        ## then something changes...
-        if( (currsbm$blocks$sizes[currb] == 1) && (propb == (currsbm$blocks$kappa+1)) ) {
-            ## edge case - currb is a singleton propb is a new block:
-            ## just resample parameter since labels dont matter
-            pthetak[currb,] <- rparams(1, Mod$params)$thetak
+        if( currsbm$blocks$sizes[currb] > 1 ){
+            ## if not currently in a singleton block - then update the block assignment
+            b <- updateblock(currsbm$blocks, i, propb)
+            if(propb > currsbm$blocks$kappa){
+                ## the number of blocks increased:
+                ## draw a new parameter from the prior
+                p <- params(
+                    currsbm$params$theta0
+                   ,
+                    rbind(currsbm$params$thetak, sbmmod$param$r(1)$thetak)
+                )
+                currsbm <- sbm(b, p)
+            }  else{
+                currsbm <- sbm(b, currsbm$params)
+            }
         } else{
-            ## otherwise we will move i
-            pblocks <- blocks(propz)
-            if( (currsbm$blocks$sizes[currb] == 1) && (propb != (currsbm$blocks$kappa+1)) ) {
-                ## moving i leaves currb empty and will be removed from the sbm-state:
-                pthetak <- pthetak[-currb,,drop=FALSE]
-            } else if( (currsbm$blocks$sizes[currb] > 1) && (propb == (currsbm$blocks$kappa+1)) ) {
-                ## Moving to a new block which needs a parameter
-                pthetak <- rbind(pthetak, rparams(1, Mod$params)$thetak)
+            ## the current block is a singleton
+            if( propb > currsbm$blocks$kappa ){
+                ## and the proposed block is a singleton:
+                ## resample parameter since labels dont matter
+                currsbm$params$thetak[currb,] <- sbmmod$param$r(1)$thetak
+            } else{
+                ## moving out of currb leaves it empty:
+                ## drop thetak[,b] from the state
+                p <- params(
+                    currsbm$params$theta0
+                   ,
+                    currsbm$params$thetak[-currb,,drop=FALSE]
+                )
+                ##  update the blocks
+                z <- as.numeric(as.character(updateblock(currsbm$blocks, i, propb)$z))
+                currsbm <- sbm(blocks(z), p)
             }
         }
     }
-
-    currsbm <- sbm(pblocks, params(ptheta0, pthetak))
     currsbm
 }

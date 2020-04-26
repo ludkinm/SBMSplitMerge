@@ -2,17 +2,17 @@
 #' @param blocks a \code{blocks} object
 #' @param params a \code{params} object
 #' @return an \code{sbm} object
+#' @examples
+#' sbm(blocks(c(1,1,2,2,3,3)), params(0.1, c(0.4,0.5,0.6)))
 #' @export
 sbm <- function(blocks, params){
     if(blocks$kappa != params$kappa)
         stop("Mis-matched number of blocks")
-    rownames(params$thetak) <- names(blocks$n)
+    colnames(params$thetak) <- names(blocks$n)
     out <- list(
         blocks = blocks
        ,
         params = params
-       ,
-        kappa = blocks$kappa
        ,
         numnodes = blocks$numnodes
     )
@@ -20,41 +20,34 @@ sbm <- function(blocks, params){
     out
 }
 
-#' print an \code{sbm} object
-#' @param x an \code{sbm} object
-#' @param ... additional arguments for formatting
-#' @export
-print.sbm <- function(x,...)
-    cat(format(x,...), "\n")
+print.sbm <- function(x,...){
+    cat("SBM object with:\n")
+    print(x$blocks)
+    print(x$params)
+}
 
-format.sbm <- function(sbm,...)
-    c("SBM object:\n\n",format(sbm$blocks,...), "\n\n", format(sbm$params,...))
+is.sbm <- function(x){
+    inherits(x, "sbm")
+}
 
-#' plot an \code{sbm} object as an \code{image}
-#' @param x an \code{sbm} object
-#' @param col colours as in \code{plot.default}
-#' @param axes axes as in \code{plot.default}
+#' @importFrom grDevices rainbow
+#' @title Plot for \code{\link{sbm}} object
+#' @description plot an \code{\link{sbm}} object as an \code{image}
+#' @param x an \code{\link{sbm}} object
+#' @param col colours for each block - if missing, \code{rainbow} is used
 #' @param ... additional arguments for plot
 #' @seealso plot.default
 #' @export
-plot.sbm <- image.sbm <- function(x, col, axes=FALSE, ...){
+plot.sbm <- function(x, col, ...){
+    old.par <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(old.par))
+    graphics::par(mfrow=c(1,2))
     if(missing(col))
-        col <- c(0,rainbow(x$kappa))
-    plot(x$blocks, axes=axes, col=col, ...)
-    plot(x$params, col=rep(col, each=x$params$dtheta), ...)
+        col <- rainbow(x$blocks$kappa)
+    plot(x$blocks, col=c(0, col), ...)
+    plot(x$params, col=c(rep(1, x$params$dimtheta), rep(col, each=x$params$dimtheta)), ...)
 }
 
-#' check if an R object is an \code{sbm} object
-#' @param x an R object
-#' @return TRUE if x is an \code{sbm} object
+#' @rdname plot.sbm
 #' @export
-is.sbm <- function(x)
-    inherits(x, "sbm")
-
-#' simulate an \code{sbm}
-#' @param numnodes number of nodes
-#' @param mod a model list
-#' @return an \code{sbm} object
-#' @export
-rsbm <- function(numnodes, mod)
-    sbm(tmp <- rblocks(numnodes, mod$blocks), rparams(tmp$kappa, mod$params))
+image.sbm <- plot.sbm

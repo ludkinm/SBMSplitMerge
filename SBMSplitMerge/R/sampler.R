@@ -1,46 +1,46 @@
 #' @title top level sampler function
-#' @param Edges \code{edges} object
-#' @param Mod model list
-#' @param nSteps number of steps to run MCMC
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
+#' @param nSteps number of steps to run sampler
 #' @param algorithm choice of algorithm options are: \code{"conjugate", "gibbs", "dp", "rj"}
 #' @param sigma random walk parameter for \code{theta}
 #' @param statusfreq print the elapsed number of iterations every \code{statusfreq} iterations
-#' @param currsbm initial state for \code{sbm} object - if NULL one is drawn from mod
-#' @param ... additional parameters to pass to \code{sbm} for \code{currsbm}
+#' @param currsbm initial state for \code{sbm} object (optional - one is drawn from \code{sbmmod} if not supplied)
+#' @param ... additional parameters to pass to step
 #' @return \code{postz} traces for block assignments \code{z}
 #' @return \code{postt} traces for \code{theta}
 #' @return \code{postk} traces for number of blocks \code{kappa}
 #' @return \code{postn} traces for number of occupied blocks
 #' @return \code{nsteps} number of iterations of chain
 #' @return \code{algorithm} choice
+#' @examples
+#' ## see vignette("Weibull edges")
 #' @export
-sampler <- function(Edges, Mod, nSteps=1000, algorithm="rj",
+sampler <- function(edges, sbmmod, nSteps=1000, algorithm="rj",
                     sigma=0.5, statusfreq, currsbm, ...){
     if(missing(statusfreq))
         statusfreq <- nSteps
 
-    step <- switch( algorithm ,
-                   "conjugate" = sampler.conj,
-                   "gibbs" = sampler.gibbs,
-                   "dp" = sampler.dp,
-                   "rj" = sampler.rj
-                   )
+    step <- switch(
+        algorithm ,
+        "conjugate" = sampler.conj,
+        "gibbs" = sampler.gibbs,
+        "dp" = sampler.dp,
+        "rj" = sampler.rj
+    )
 
-    if(algorithm=="conjugate"){
-        if(!is.function(Mod$marglike))
-            stop("Please set a marginal likelihood function in Mod")
-        warning("Selected conjugate Model - ensure the edge-state and parameter Models are conjugate")
-    }
+    if(algorithm=="conjugate")
+        if(!is.function(sbmmod$marglike))
+            stop("Please set a marginal likelihood function in sbmmod$marglike")
 
-    if( algorithm == "gibbs" & !Mod$blocks$fixkappa)
-        stop("Can't use the gibbs sampler unless block Model has a fixed kappa")
+    if(algorithm == "gibbs" & !sbmmod$block$fixkappa)
+        stop("Can't use the gibbs sampler unless block sbmmodel in sbmmod has a fixed kappa")
 
-    N <- Edges$numnodes
+    N <- edges$numnodes
     if(missing(currsbm))
-        currsbm <- rsbm(N, Mod)
-    dtheta <- currsbm$params$dtheta
+        currsbm <- sbmmod$r(N, FALSE)
     postz <- array(NA, c(N, nSteps))
-    postt <- array(NA, c(dtheta, N+1, nSteps))
+    postt <- array(NA, c(currsbm$params$dimtheta, N+1, nSteps))
     postn    <- array(NA, c(N, nSteps))
     posttbar <- rep(NA, nSteps)
     posttvar <- rep(NA, nSteps)
@@ -50,112 +50,138 @@ sampler <- function(Edges, Mod, nSteps=1000, algorithm="rj",
     ## store sample 1
     postz[,1]   <- currsbm$blocks$z
     postt[,1,1] <- currsbm$params$theta0
-    postt[,1+1:currsbm$kappa,1] <- t(currsbm$params$thetak)
-    postk[1] <- currsbm$kappa
-    postl[1] <- loglike(Edges, currsbm, Mod)
-    postn[1:currsbm$kappa,1] <- currsbm$blocks$sizes
+    postt[,1+1:currsbm$blocks$kappa,1] <- t(currsbm$params$thetak)
+    postk[1] <- currsbm$blocks$kappa
+    postl[1] <- sbmmod$logd(currsbm, edges)
+    postn[1:currsbm$blocks$kappa,1] <- currsbm$blocks$sizes
 
     for(s in 2:nSteps){
-        currsbm <- step(currsbm, Edges, Mod, sigma, ...)
+        currsbm <- step(currsbm, edges, sbmmod, sigma, ...)
         ## store
-        postk[s] <- currsbm$kappa
-        postl[s] <- loglike(Edges, currsbm, Mod)
+        postk[s] <- currsbm$blocks$kappa
+        postl[s] <- sbmmod$logd(currsbm, edges)
         postz[,s]   <- currsbm$blocks$z
         postt[,1,s] <- currsbm$params$theta0
-        postt[,1+1:currsbm$kappa,s] <- t(currsbm$params$thetak)
-        postn[1:currsbm$kappa,s] <- currsbm$blocks$sizes
-        status(s, statusfreq)
+        postt[,1+1:currsbm$blocks$kappa,s] <- t(currsbm$params$thetak)
+        postn[1:currsbm$blocks$kappa,s] <- currsbm$blocks$sizes
+        if( (s %% statusfreq) == 0) message(s, "\n")
     }
 
-    list(postz=postz, postl=postl, postt=postt, postk=postk, postn=postn, nsteps=nSteps, algorithm=algorithm)
+    list(
+        postz=postz, postl=postl, postt=postt, postk=postk,
+        postn=postn, nsteps=nSteps, algorithm=algorithm
+    )
 }
-
-#' print the status every \code{n} steps
-#' @param s step number
-#' @param n frequency
-status <- function(s, n=10)
-    if( s %% n == 0)
-        cat(s, "\n")
 
 #' accept \code{propsbm} with the acceptance probability alpha
 #' @param currsbm current \code{sbm} state
 #' @param propsbm proposed \code{sbm} state
-#' @param Edges \code{edges} object
-#' @param Mod model list
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param logjac log Jacobian of transformation of variables
 #' @param logu log density for auxiliary variables
-#' @param ... additional arguments to pass to log-likelihood
-#' @return next \code{sbm} in the chain
-accept <- function(currsbm, propsbm, Edges, Mod, logjac=0, logu=0, ...){
-    logl <- loglike(Edges, propsbm, Mod, ...) - loglike(Edges, currsbm, Mod, ...)
-    logp <- dparams(propsbm, Mod) - dparams(currsbm, Mod)
-    logb <- dblocks(propsbm, Mod) - dblocks(currsbm, Mod)
-    A <- exp(logl+logp+logb+logjac+logu)
-    ## potential that A up like exp(Inf - Inf?)
+#' @param ... additional arguments to pass to dedges
+#' @return updated \code{sbm} object
+accept <- function(currsbm, propsbm, edges, sbmmod, logjac=0, logu=0, ...){
+    ll <- sbmmod$logd(propsbm, edges, ...) - sbmmod$logd(currsbm, edges, ...)
+    A <- exp(ll + logjac + logu)
+    ## potential that A looks like exp(Inf - Inf) - reject if A is NaN
     if(!is.nan(A) & (stats::runif(1) < A))
         currsbm <- propsbm
     currsbm
 }
 
-#' conjugate model sampler
+#' Conjugate model sampler
 #' @param currsbm the current state of the sampler
-#' @param Edges edges object
-#' @param Mod model list
-sampler.conj <- function(currsbm, Edges, Mod){
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
+#' @param ... additional arguments for sbmod$marglike
+#' @return next state of the sbm object
+#' @examples
+#' model <- sbmmod(multinom(2, 3), param_beta(1,1,1,1), edges_bern(), marglike=marglike_bern)
+#' trueSBM <- model$r(100)
+#' Edges <- redges(trueSBM, model$edge)
+#' \dontrun{out <- sampler(Edges, model, 100, "conjugate")}
+#' @export
+sampler.conj <- function(currsbm, edges, sbmmod, ...){
     for(i in 1:currsbm$numnodes){
-        znoi <- zmat(currsbm$blocks)[,-i,drop=FALSE]
-        ei   <- Edges$Edges[i,-i]
-        p <- Mod$marglike(znoi, ei, Mod$params)
-        q <- condprior(currsbm$blocks, Mod$blocks, i)
+        znoi <- blockmat(currsbm$blocks)[,-i,drop=FALSE]
+        ei   <- edges$edges[i,-i]
+        p <- sbmmod$marglike(znoi, ei, sbmmod$params, ...)
+        q <- sbmmod$block$dcond(currsbm$blocks, i)
         p <- normaliselogs(p)
         newblock <- rcat(1,p)
-        currsbm <- updateblock.sbm(currsbm, newblock, i)
+        currsbm <- updateblock.sbm(currsbm, i, newblock)
     }
     currsbm
 }
 
 #' Gibbs sampling for node assignments
 #' @param currsbm the current state of the sampler
-#' @param Edges \code{edges} object
-#' @param Mod model list
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param sigma random walk parameter for theta
-sampler.gibbs <- function(currsbm, Edges, Mod, sigma){
-    currsbm <- drawblocks.gibbs(currsbm, Edges, Mod)
-    currsbm <- drawparams(currsbm, Edges, Mod, sigma)
+#' @return next state of the sbm object
+#' @examples
+#' model <- sbmmod(multinom(1, 3), param_beta(1,1,1,1), edges_bern())
+#' trueSBM <- model$r(100)
+#' Edges <- redges(trueSBM, model$edge)
+#' \dontrun{gibbs_out <- sampler(Edges, model, algorithm="gibbs", 100, sigma=0.1)}
+#' \dontrun{eval_plots(gibbs_out)}
+#' @export
+sampler.gibbs <- function(currsbm, edges, sbmmod, sigma){
+    currsbm <- drawblocks.gibbs(currsbm, edges, sbmmod)
+    currsbm <- drawparams(currsbm, edges, sbmmod, sigma)
     currsbm
 }
 
-#' Dirichlet Process sampler
+#' Dirichlet process sampler
 #' @param currsbm the current state of the sampler
-#' @param Edges \code{edges} object
-#' @param Mod model list
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param sigma random walk parameter for theta
-sampler.dp <- function(currsbm, Edges, Mod, sigma){
-    currsbm <- drawblocks.dp(currsbm, Edges, Mod)
-    currsbm <- drawparams(currsbm, Edges, Mod, sigma)
+#' @return next state of the sbm object
+#' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
+#' @examples
+#' model <- sbmmod(crp(10), param_beta(1,1,1,1), edges_bern())
+#' trueSBM <- model$r(100)
+#' Edges <- redges(trueSBM, model$edge)
+#' \dontrun{dp_out <- sampler(Edges, model, 100, "dp", sigma=0.1)}
+#' @export
+sampler.dp <- function(currsbm, edges, sbmmod, sigma){
+    currsbm <- drawblocks.dp(currsbm, edges, sbmmod)
+    currsbm <- drawparams(currsbm, edges, sbmmod, sigma)
     currsbm
 }
 
-#' reversible jump MCMC split-merge sampler
+#' reversible jump Markov chain Monte Carlo split-merge sampler
 #' @param currsbm the current state of the sampler
-#' @param Edges \code{edges} object
-#' @param Mod model list
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param sigma random walk parameter for \code{theta}
 #' @param rho propensity to add a block
-sampler.rj <- function(currsbm, Edges, Mod, sigma, rho=10){
-    currsbm <- drawparams(currsbm, Edges, Mod, sigma=sigma)
-    if( stats::runif(1) < 0.5 | currsbm$kappa == 1 ){
-        currsbm <- splitavg(currsbm, Edges, Mod)
+#' @return next state of the sbm object
+#' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
+#' @examples
+#' model <- sbmmod(dma(1,10), param_beta(1,1,1,1), edges_bern())
+#' trueSBM <- model$r(100)
+#' Edges <- redges(trueSBM, model$edge)
+#' \dontrun{rj_out <- sampler(Edges, model, 100, "rj", sigma=0.1)}
+#' @export
+sampler.rj <- function(currsbm, edges, sbmmod, sigma, rho=10){
+    currsbm <- drawparams(currsbm, edges, sbmmod, sigma=sigma)
+    if( stats::runif(1) < 0.5 | currsbm$blocks$kappa == 1 ){
+        currsbm <- splitavg(currsbm, edges, sbmmod)
     } else{
-        currsbm <- mergeavg(currsbm, Edges, Mod)
+        currsbm <- mergeavg(currsbm, edges, sbmmod)
     }
     emptyblocks <- sum(currsbm$blocks$sizes==0)
     pdel <- emptyblocks/(emptyblocks+rho)
     if( stats::runif(1) < pdel ){
-        currsbm <- delblock(currsbm, Edges, Mod, rho=rho)
+        currsbm <- delblock(currsbm, edges, sbmmod, rho=rho)
     } else{
-        currsbm <- addblock(currsbm, Edges, Mod, rho=rho)
+        currsbm <- addblock(currsbm, edges, sbmmod, rho=rho)
     }
-    currsbm <- drawblocks.gibbs(currsbm, Edges, Mod)
+    currsbm <- drawblocks.gibbs(currsbm, edges, sbmmod)
     currsbm
 }

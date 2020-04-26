@@ -1,171 +1,165 @@
-#' remove a block
-#' @param z factor vector of block memberships
-#' @param k a block (level of z)
-#' @return a \code{blocks} object without block k
-rmblock <- function(z, k)
-    ## Takes a vector of block assignments and removes label k.
-    ## Returned as block object
-    blocks(factor(z, levels(z)[-k]))
-
-#' add a block move
-#' @param SBM an \code{sbm} object
-#' @param Edges an \code{edges} object
-#' @param Mod a model list
+#' @title Add a block move
+#' @description proposes adding an empty block labelled kappa+1 to sbm
+#' @param sbm the current state of the sampler
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param rho probability of choosing to add a block
 #' @return an updated \code{sbm} object
-addblock <- function(SBM, Edges, Mod, rho=1){
-    ## proposes adding an empty block labelled kappa+1 to the SBM object
-    ## auto accept-rejects
-    ## returns SBM object
-    nempty <- sum(SBM$blocks$sizes == 0)
-    newparam <- rparams(1, Mod$params)$thetak
-    p <- params(SBM$params$theta0, rbind(SBM$params$thetak, newparam))
-    b <- blocks(SBM$blocks$z, SBM$kappa+1)
-    propSBM <- sbm(b,p)
-    logb <- dblocks(propSBM, Mod) - dblocks(SBM, Mod)
+addblock <- function(sbm, edges, sbmmod, rho=1){
+    nempty <- sum(sbm$blocks$sizes == 0)
+    propsbm <- sbm(
+        blocks(sbm$blocks$z, sbm$blocks$kappa+1) ## increment the number of blocks
+       ,
+        params(
+            sbm$params$theta0,
+            rbind(sbm$params$thetak, sbmmod$param$r(1)$thetak) ## simulate a new parameter
+        )
+    )
+    logb <- sbmmod$block$logd(propsbm$blocks) - sbmmod$block$logd(sbm$blocks)
     logu <- log(rho + nempty) - log(rho) - log(rho + nempty + 1)
     A <- exp(logb+logu)
-    ## potential that A up like exp(Inf - Inf?)
     if(!is.nan(A) & (stats::runif(1) < A))
-        SBM <- propSBM
-    SBM
+        sbm <- propsbm
+    sbm
 }
 
-#' delete a block move
-#' @param SBM an \code{sbm} object
-#' @param Edges an \code{edges} object
-#' @param Mod a model list
+rmblock <- function(z, k)
+    blocks(factor(z, levels(z)[-k]))
+
+#' @title Delete a block move
+#' @description proposes deleting an empty block (chosen at random among empty Blocks)
+#' @param sbm the current state of the sampler
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param rho probability of choosing to add a block
 #' @return an updated \code{sbm} object
-delblock <- function(SBM, Edges, Mod, rho=1){
-    ## proposes deleting an empty block (chosen at random among empty Blocks)
-    ## auto accept-rejects
-    ## returns SBM object
-    emptyind <- SBM$blocks$sizes == 0
+delblock <- function(sbm, edges, sbmmod, rho=1){
+    emptyind <- sbm$blocks$sizes == 0
     nempty   <- sum(emptyind)
-    k        <- which(emptyind)[sample(nempty,1)]
-    b <- rmblock(SBM$blocks$z, k)
-    p <- params(SBM$params$theta0, SBM$params$thetak[-k, ,drop=FALSE])
-    propSBM <- sbm(b,p)
-    logb <- dblocks(propSBM, Mod) - dblocks(SBM, Mod)
+    k <- which(emptyind)[sample(nempty,1)]
+    b <- rmblock(sbm$blocks$z, k)
+    p <- params(sbm$params$theta0, sbm$params$thetak[-k, ,drop=FALSE])
+    propsbm <- sbm(b,p)
+    logb <- sbmmod$block$logd(propsbm$blocks) - sbmmod$block$logd(sbm$blocks)
     logu <- log(rho + nempty) + log(rho) - log(rho + nempty - 1)
     A <- exp(logb+logu)
     ## potential that A up like exp(Inf - Inf?)
     if(!is.nan(A) & (stats::runif(1) < A))
-        SBM <- propSBM
-    SBM
+        sbm <- propsbm
+    sbm
 }
 
-#' merge move using average to merge parameters
-#' @param SBM an \code{sbm} object
-#' @param Edges an \code{edges} object
-#' @param Mod a model list
+#' @title Merge blocks
+#' @description Merge-move using an average to merge parameters
+#' @details the blocks are chosen at random, the nodes reassigned to the block with the smallest index, then the parameters are combined using the average on the transformed scale
+#' @param sbm the current state of the sampler
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param ... additional parameter to 'accept'
 #' @return an updated \code{sbm} object
-mergeavg <- function(SBM, Edges, Mod, ...){
-    ## merge two Blocks together chosen at random
-    ## returns SBM
-    kl <- rcat(2, rep(1, SBM$kappa), FALSE)
+mergeavg <- function(sbm, edges, sbmmod, ...){
+    kl <- rcat(2, rep(1, sbm$blocks$kappa), FALSE)
     k <- min(kl)
     l <- max(kl)
-    mp <- mergeparams(SBM$params, k, l, Mod$params)
-    mb <- mergeblocks(SBM, k, l, Edges, Mod)
-    propSBM <- sbm(mb$prop, mp$prop)
-    logu <- log(SBM$kappa) - log(2) + (SBM$kappa==2)*log(2)
-    accept(SBM, propSBM, Edges, Mod, mp$loga + mb$loga, logu, ...)
+    ## merges the blocks and computes q(Z).
+    mp <- mergeparams(sbm$params, k, l, sbmmod$param)
+    mb <- mergeblocks(sbm$blocks, mp$prop, edges, sbmmod, k, l)
+    propsbm <- sbm(mb$prop, mp$prop)
+    ## deterministic
+    logu <- log(sbm$blocks$kappa) - log(2) + (sbm$blocks$kappa==2)*log(2)
+    accept(sbm, propsbm, edges, sbmmod, mp$loga + mb$loga, logu, ...)
 }
 
 #' split move using average to merge parameters
-#' @param SBM an \code{sbm} object
-#' @param Edges an \code{edges} object
-#' @param Mod a model list
+#' @param sbm the current state of the sampler
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param ... additional parameter to 'accept'
 #' @return an updated \code{sbm} object
-splitavg <- function(SBM, Edges, Mod, ...){
+splitavg <- function(sbm, edges, sbmmod, ...){
     ## split a block chosen at random
-    ## returns SBM
-    k       <- sample(SBM$kappa, 1)
+    ## returns sbm
+    k       <- sample(sbm$blocks$kappa, 1)
     ## propose parameters
-    sp      <- splitparams(SBM$params, k, Mod$params)
-    pparams <- sp$prop
-    sb      <- splitblocks(SBM$blocks, pparams, k, Edges, Mod)
-    pblocks <- sb$prop
-    propSBM <- sbm(pblocks, pparams)
+    sp      <- splitparams(sbm$params, k, sbmmod$param)
+    propparams <- sp$prop
+    sb      <- splitblocks(sbm$blocks, propparams, edges, sbmmod, k)
+    propblocks <- sb$prop
+    propsbm <- sbm(propblocks, propparams)
     ## acceptence probability
-    logu <- log(2) - log(SBM$kappa+1)  - (SBM$kappa==1)*log(2)
-    accept(SBM, propSBM, Edges, Mod, logjac=sp$loga + sb$loga, logu=logu, ...)
+    logu <- log(2) - log(sbm$blocks$kappa+1)  - (sbm$blocks$kappa==1)*log(2)
+    accept(sbm, propsbm, edges, sbmmod, logjac=sp$loga + sb$loga, logu=logu, ...)
 }
 
 #' merge move block merging
-#' @param SBM an \code{sbm} object
+#' @param currblocks current blocks
+#' @param propparams proposed parameters
+#' @param edges an \code{\link{edges}} object
+#' @param sbmmod an \code{\link{sbmmod}} model
 #' @param k Blocks to merge
 #' @param l Blocks to merge
-#' @param Edges an \code{edges} object
-#' @param Mod a model list
 #' @return \code{list(proposed block structure, log-acceptance-prob)}
-mergeblocks <- function(SBM, k, l, Edges, Mod){
-    ## merges two Blocks, whilst calculating the inverse probability
-    origz <- currz <- propz <- SBM$blocks$z
-
-    ## make proposed block structure by relabelling any l's to k's
-    ind   <- (origz == k) | (origz == l)
-    propz[ind] <- k
-    propBlocks <- rmblock(propz, l)
-
+mergeblocks <- function(currblocks, propparams, edges, sbmmod, k, l){
+    ## which nodes are merging?
+    ind <- (currblocks$z == k) | (currblocks$z == l)
     ## calculate reverse probability of assignment
-    nodes <- which(ind)[sample(sum(ind))] # shuffle nodes
-    currz[ind] <- NA
-    currBlocks <- blocks(currz, SBM$kappa) # running block model
+    ## copy and unassign the nodes in ind
+    propblocks <- currblocks
+    propblocks$z[ind] <- NA
+    ## shuffle the nodes to be assigned
+    nodes <- which(ind)[sample(sum(ind))]
+    ## for each node, get the likelihood of it being in each block
     loga <- 0
-    for(i in nodes){
-        p <- nodelike(Edges, currBlocks, SBM$params, Mod, i)
+    for(i in nodes){ # shuffled nodes
+        p <- nodelike(propblocks, propparams, edges, i, sbmmod)
         p <- normaliselogs(p[c(k,l)])
-        loga <- loga + log(p[origz[i] == c(k,l)])
-        currz[i] <- origz[i]
+        loga <- loga + log(p[currblocks$z[i] == c(k,l)])
+        propblocks$z[i] <- currblocks$z[i]
     }
-    list(prop = propBlocks, loga = loga)
+    ## update block assignment
+    propblocks$z[ind] <- k
+    propblocks <- rmblock(propblocks$z, l)
+    list(prop = propblocks, loga = loga)
 }
 
 #' split move: blocks
-#' @param Blocks a \code{blocks} object
-#' @param pparams proposed \code{params }
+#' @param currblocks current blocks
+#' @param propparams proposed parameters
+#' @param edges an \code{edges} object
+#' @param sbmmod a model list
 #' @param k block to split
-#' @param Edges an \code{edges} object
-#' @param Mod a model list
 #' @return \code{list(proposed block structure, log-acceptance-prob)}
-splitblocks <- function(Blocks, pparams, k, Edges, Mod){
+splitblocks <- function(currblocks, propparams, edges, sbmmod, k){
     ## splits two block calculating the acceptance probability along the way
-    ind  <- Blocks$z == k
+    propblocks <- blocks(currblocks$z, currblocks$kappa+1)
+    ind  <- propblocks$z == k
     loga <- 0
-    l <- Blocks$kappa+1
+    l <- propblocks$kappa
     if( sum(ind) > 0 ){                 # if k is not-empty
-        propz <- Blocks$z
-        propz[ind] <- NA
+        propblocks$z[ind] <- NA
         ## calculate reverse probability of assignment
         nodes <- which(ind)[sample(sum(ind))] # shuffle nodes
-        propBlocks <- blocks(propz, l) # running block model
         for(i in nodes){
-            p <- nodelike(Edges, propBlocks, pparams, Mod, i)
+            p <- nodelike(propblocks, propparams, edges, i, sbmmod)
             p <- normaliselogs(p[c(k,l)])
             j <- rcat(1,p)
-            propBlocks <- updateblock(propBlocks, c(k,l)[j], i)
+            propblocks <- updateblock(propblocks, i, c(k,l)[j])
             loga <- loga - log(p[j])
         }
         ## make the larger block stay labelled as k
-        if( propBlocks$sizes[l] > propBlocks$sizes[k] ){
-            propz <- propBlocks$z
+        if( propblocks$sizes[l] > propblocks$sizes[k] ){
+            propz <- propblocks$z
             in_l <- propz == l
             in_k <- propz == k
             propz[in_l] <- k
             propz[in_k] <- l
-            propBlocks <- blocks(propz, l)
+            propblocks <- blocks(propz, l)
         }
     } else {
-        propBlocks <- blocks(Blocks$z, l)
+        propblocks <- blocks(currblocks$z, l)
     }
-    list(prop = propBlocks, loga = loga)
+    list(prop = propblocks, loga = loga)
 }
-
 
 #' split move: parameters
 #' @param x object for dispatch
@@ -180,9 +174,9 @@ splitparams <- function(x, ...)
 #' @return \code{list(proposed_params, log-acceptance-prob)}
 splitparams.params <- function(params, k, parammod){
     ## split params, draw x (w in paper) uniform and u normally distributed
-    x    <- stats::rbeta(params$dtheta, 5, 5)
-    u    <- stats::rnorm(params$dtheta, 0, 1)
-    loga <- sum(stats::dnorm(u, 0, 1, log=T))
+    x    <- stats::rbeta(params$dimtheta, 5, 5)
+    u    <- stats::rnorm(params$dimtheta, 0, 1)
+    loga <- sum(stats::dnorm(u, 0, 1, log=TRUE))
     l    <- params$kappa+1
     propthetak <- rbind(params$thetak,0)
     theta <- params$thetak[k,]
@@ -212,6 +206,8 @@ splitparams.numeric <- function(theta, u, x, parammod){
 #' merge parameters
 #' @param x an object to dispatch on
 #' @param ... additional arguments for methods
+#' @return merged parameters from \code{x}
+#' @seealso mergeparams.default mergeparams.numeric
 mergeparams <- function(x,...)
     UseMethod("mergeparams", x)
 
@@ -223,7 +219,7 @@ mergeparams <- function(x,...)
 #' @return \code{list(proposed_params, log-acceptance-prob)}
 mergeparams.default <- function(params, k, l, parammod){
     ## gi
-    x <- stats::runif(params$dtheta)
+    x <- stats::runif(params$dimtheta)
     propthetak <- params$thetak
     tmp <- mergeparams(params$thetak[k,], params$thetak[l,], x, parammod)
     propthetak[k,] <- tmp$prop
