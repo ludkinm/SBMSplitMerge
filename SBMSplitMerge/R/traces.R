@@ -16,6 +16,7 @@ plotpostpairs <- function(mat){
 #' plot a trace of the blocks from MCMC samples
 #' @importFrom ggplot2 xlab ylab scale_fill_discrete
 #' @param postz output from sampler
+#' @param burnin which iterations to plot? defaults to all.
 #' @return ggplot object of node assignments against iteration number
 #' @export
 blocktrace <- function(postz, burnin){
@@ -35,6 +36,7 @@ blocktrace <- function(postz, burnin){
 #' plot a trace of the number of blocks from MCMC samples
 #' @importFrom ggplot2 ggplot aes geom_line
 #' @param postk output from sampler
+#' @param burnin which iterations to plot? defaults to all.
 #' @return ggplot object of kappa against iteration number
 #' @export
 numblockstrace <- function(postk, burnin){
@@ -43,7 +45,8 @@ numblockstrace <- function(postk, burnin){
 
 #' plot a trace of parameter values from MCMC samples
 #' @importFrom reshape2 melt
-#' @importFrom ggplot2 ggplot geom_line geom_hline
+#' @importFrom scales hue_pal
+#' @importFrom ggplot2 ggplot geom_line scale_color_manual
 #' @param theta output from sampler
 #' @param range which thetas to plot? defaults to all.
 #' @param burnin which iterations to plot? defaults to all.
@@ -53,7 +56,7 @@ paramtrace <- function(theta, range, burnin){
     if(missing(range))
         range <- 1:dim(theta)[2]
     if(missing(burnin))
-        burnin <- dim(theta)[3]
+        burnin <- 1:dim(theta)[3]
     dimtheta <- dim(theta)[1]
     thetas <- theta[,range,burnin,drop=FALSE]
     ps <- list()
@@ -63,9 +66,9 @@ paramtrace <- function(theta, range, burnin){
         names(df) <- c("burnin", range-1)
         mf <- reshape2::melt(df, id="burnin")
         names(mf) <- c("Iteration", "Theta", "Value")
-        ps[[k]] <- ggplot(mf, aes(x=Iteration, y=Value, col=Theta)) +
+        ps[[k]] <- ggplot(mf, aes(x=.data$Iteration, y=.data$Value, col=.data$Theta)) +
             geom_line() +
-            scale_color_manual(values = c("black", scales::hue_pal()(length(range))))
+            ggplot2::scale_color_manual(values = c("black", scales::hue_pal()(length(range)-1)))
     }
     ps
 }
