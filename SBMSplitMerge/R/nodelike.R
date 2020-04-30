@@ -1,6 +1,6 @@
 #' @title Likelihood of node assignment
 #' @description Calculate the likelihood of a nod belonging to each of block
-#' @details the number of blocks considered is either the number of blocks in sbm (kappa) or kappa+1 when sbmmod has a variable number of blocks.
+#' @details the number of blocks considered is either the number of blocks in \code{sbm (kappa)} or \code{kappa+1} when \code{sbmmod} has a variable number of blocks.
 #' care is taken for data which is directed and with loops.
 #' @param blocks an \code{\link{blocks}} object
 #' @param params an \code{\link{params}} object
@@ -16,14 +16,15 @@ nodelike <- function(blocks, params, edges, i, sbmmod, ...){
     z <- blockmat(blocks, kappa)
     ## parameters between i and j for i in each of the kappa blocks
     p <- parammat(diag(kappa), z, params)
-    ## likelihood matrix of edges from i
+    ## likelihood matrix of edges *from* i
     like <- sbmmod$edge$logd(edges$E[rep(i, kappa),], p)
+    if(!edges$sym){
+        ## if not symmettric need to account for edges *to* i separately
+        p <- parammat(z, diag(kappa), params)
+        ## likelihood matrix of edges *to* i
+        like <- like + t(sbmmod$edge$logd(edges$E[,rep(i, kappa)], p))
+    }
     if(!edges$loops)
         like <- like[,-i]
-    if(!edges$sym){
-        ## likelihood matrix of edges to i
-        p <- parammat(z, diag(kappa), params)
-        like <- like + t(sbmmod$edge$logd(edges$E[, rep(i, kappa)], p))
-    }
     rowSums(like, na.rm=TRUE)
 }

@@ -1,5 +1,5 @@
 #' @title Add a block move
-#' @description proposes adding an empty block labelled kappa+1 to sbm
+#' @description proposes adding an empty block labelled \code{kappa+}1 to \code{sbm}
 #' @param sbm the current state of the sampler
 #' @param edges an \code{\link{edges}} object
 #' @param sbmmod an \code{\link{sbmmod}} model
@@ -207,7 +207,7 @@ splitparams.numeric <- function(theta, u, x, parammod){
 #' @param x an object to dispatch on
 #' @param ... additional arguments for methods
 #' @return merged parameters from \code{x}
-#' @seealso mergeparams.default mergeparams.numeric
+#' @seealso \code{\link{mergeparams.default}} \code{\link{mergeparams.numeric}}
 mergeparams <- function(x,...)
     UseMethod("mergeparams", x)
 

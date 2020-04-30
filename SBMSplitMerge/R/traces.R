@@ -2,12 +2,9 @@
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot aes geom_raster theme scale_x_continuous scale_y_continuous element_blank .data
 #' @param mat matrix to plot as an image using ggplot2
-#' @param discrete are the values discrete?
-postimage <- function(mat, discrete=FALSE){
+plotpostpairs <- function(mat){
     df <- reshape2::melt(mat)
     a <- ggplot2::aes(.data$Var2, .data$Var1, fill=.data$value)
-    if(discrete)
-        a <- ggplot2::aes(.data$Var2, .data$Var1, fill=factor(.data$value))
     p <- ggplot2::ggplot(df, a) + ggplot2::geom_raster() +
         ggplot2::scale_x_continuous(expand = c(0, 0)) +
         ggplot2::scale_y_continuous(expand = c(0, 0)) +
@@ -21,9 +18,17 @@ postimage <- function(mat, discrete=FALSE){
 #' @param postz output from sampler
 #' @return ggplot object of node assignments against iteration number
 #' @export
-blocktrace <- function(postz){
-    p <- postimage(postz, TRUE)
-    p <- p + ggplot2::ylab("Node") + ggplot2::xlab("Iteration") + ggplot2::scale_fill_discrete(name="Block")
+blocktrace <- function(postz, burnin){
+    df <- reshape2::melt(postz[,burnin])
+    names(df) <- c("Node", "Iteration", "Block")
+    df$Block <- factor(df$Block)
+    df$Iteration <- df$Iteration + min(burnin)
+    a <- ggplot2::aes(.data$Iteration, .data$Node, fill=.data$Block)
+    p <- ggplot2::ggplot(df, a) + ggplot2::geom_raster() +
+        ggplot2::scale_x_continuous(expand = c(0, 0)) +
+        ggplot2::scale_y_continuous(expand = c(0, 0)) +
+        ggplot2::theme(panel.grid.minor=ggplot2::element_blank(),
+                       panel.grid.major=ggplot2::element_blank())
     p
 }
 
@@ -32,32 +37,37 @@ blocktrace <- function(postz){
 #' @param postk output from sampler
 #' @return ggplot object of kappa against iteration number
 #' @export
-numblockstrace <- function(postk){
-    ggplot2::ggplot(data=data.frame(Iteration=seq_along(postk), K=postk), ggplot2::aes(x=.data$Iteration, y=.data$K)) + ggplot2::geom_line()
+numblockstrace <- function(postk, burnin){
+    ggplot2::ggplot(data=data.frame(Iteration=burnin, K=postk[burnin]), ggplot2::aes(x=.data$Iteration, y=.data$K)) + ggplot2::geom_line()
 }
-
 
 #' plot a trace of parameter values from MCMC samples
 #' @importFrom reshape2 melt
-#' @importFrom ggplot2 xlab ylab guides guide_legend geom_hline
+#' @importFrom ggplot2 ggplot geom_line geom_hline
 #' @param theta output from sampler
-#' @param truetheta if supplied, adds guidelines for the true parameters
+#' @param range which thetas to plot? defaults to all.
+#' @param burnin which iterations to plot? defaults to all.
 #' @return ggplot object of theta value against iteration number
 #' @export
-paramtrace <- function(theta, truetheta){
-    ind <- colSums(apply(theta, 2, is.na)) != dim(theta)[3]
-    theta[,ind,][is.na(theta[,ind,])] <- 0
-    dft <- reshape2::melt(theta[,ind,,drop=FALSE], id=.data$Dimension)
-    names(dft) <- c("Dimension", "Block", "Iteration", "Value")
-    dft$Block <- as.factor(dft$Block - 1)
-    p <- ggplot2::ggplot(dft, ggplot2::aes(x=.data$Iteration, y=.data$Value, color=.data$Block)) +
-        ggplot2::geom_line() +
-        ggplot2::xlab("Iteration") +
-        ggplot2::ylab("Theta") +
-        ggplot2::facet_grid(. ~ .data$Dimension)
-    if(!missing(truetheta))
-        p <- p + ggplot2::geom_hline(yintercept=truetheta)
-    p
+paramtrace <- function(theta, range, burnin){
+    if(missing(range))
+        range <- 1:dim(theta)[2]
+    if(missing(burnin))
+        burnin <- dim(theta)[3]
+    dimtheta <- dim(theta)[1]
+    thetas <- theta[,range,burnin,drop=FALSE]
+    ps <- list()
+    length(ps) <- dimtheta
+    for(k in 1:dimtheta){
+        df <- data.frame(burnin, cbind(t(thetas[k,,])))
+        names(df) <- c("burnin", range-1)
+        mf <- reshape2::melt(df, id="burnin")
+        names(mf) <- c("Iteration", "Theta", "Value")
+        ps[[k]] <- ggplot(mf, aes(x=Iteration, y=Value, col=Theta)) +
+            geom_line() +
+            scale_color_manual(values = c("black", scales::hue_pal()(length(range))))
+    }
+    ps
 }
 
 #' mean proportion of times two nodes were in the same block under MCMC samples
@@ -84,25 +94,25 @@ modeblocks <- function(postz)
 #' @export
 #' @param output from sampler
 #' @param burnin burn-in period (a vector of iteration numbers to subset outputs)
-#' @param truetheta optional, if provided as a vector, they are added to the parameter plot
+#' @param theta_index which set of thetas to plot?
 #' @return list of ggplot objects (with descriptive names)
 #' @examples
 #' \dontrun{output <- sampler(...)}
 #' \dontrun{ps <- eval_plots(output)}
 #' \dontrun{ps$post_pairs}
-eval_plots <- function(output, burnin, truetheta){
+eval_plots <- function(output, burnin, theta_index){
     if(missing(burnin))
         burnin <- 1:output$nsteps
-    nb <- numblockstrace(output$postk[burnin])
+    nb <- numblockstrace(output$postk, burnin)
     pp <- postpairs(output$postz[,burnin])
-    pp_plot <- postimage(pp) + ggplot2::xlab("Node") + ggplot2::ylab("Node") + ggplot2::scale_fill_continuous(name = "Probability")
+    pp_plot <- plotpostpairs(pp) + ggplot2::xlab("Node") + ggplot2::ylab("Node") + ggplot2::scale_fill_continuous(name = "Probability")
     ## order for posterior plotting
     ind <- order(colSums(pp))
-    pp_sorted <- postimage(pp[ind,ind]) + ggplot2::xlab("Node") + ggplot2::ylab("Node") + ggplot2::scale_fill_continuous(name = "Probability")
-    pt <- paramtrace(output$postt[,,burnin, drop=FALSE], truetheta)
-    pt_sorted <- paramtrace(output$postt[,ind,burnin, drop=FALSE], truetheta)
-    bt <- blocktrace(output$postz[,burnin])
-    bt_sorted <- blocktrace(output$postz[ind,burnin])
+    pp_sorted <- plotpostpairs(pp[ind,ind]) + ggplot2::xlab("Node") + ggplot2::ylab("Node") + ggplot2::scale_fill_continuous(name = "Probability")
+    bt <- blocktrace(output$postz, burnin)
+    bt_sorted <- blocktrace(output$postz[ind,], burnin)
+    pt <- paramtrace(output$postt, theta_index, burnin)
+    pt_sorted <- paramtrace(output$postt, theta_index, burnin)
     list(
         num_blocks_trace = nb
        ,

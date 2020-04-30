@@ -8,12 +8,12 @@
 #' - a transformation function \code{t} that maps a parameter value to the real line
 #' - the inverse of t
 #' - the log-gradient of t
-#' @param logd function(params) - log-density function for parameters
-#' @param r function(kappa) - random function to draw parameters
+#' @param logd \code{function(params)} - log-density function for parameters
+#' @param r \code{function(kappa)} - random function to draw parameters
 #' @param t mapping parameter space to real line
 #' @param invt mapping real line to parameter space
 #' @param loggradt log of the gradient of mapping \code{t}
-#' @param ... additional arguments to store in the parammod object
+#' @param ... additional arguments to store in the \code{parammod} object
 #' @return a \code{parammod} object
 #' @seealso \code{\link{param_beta}} \code{\link{param_gamma}} \code{\link{param_nbin}} \code{\link{param_norm}}
 #' @export

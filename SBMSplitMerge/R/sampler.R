@@ -80,7 +80,7 @@ sampler <- function(edges, sbmmod, nSteps=1000, algorithm="rj",
 #' @param sbmmod an \code{\link{sbmmod}} model
 #' @param logjac log Jacobian of transformation of variables
 #' @param logu log density for auxiliary variables
-#' @param ... additional arguments to pass to dedges
+#' @param ... additional arguments to pass to \code{dedges}
 #' @return updated \code{sbm} object
 accept <- function(currsbm, propsbm, edges, sbmmod, logjac=0, logu=0, ...){
     ll <- sbmmod$logd(propsbm, edges, ...) - sbmmod$logd(currsbm, edges, ...)
@@ -95,8 +95,8 @@ accept <- function(currsbm, propsbm, edges, sbmmod, logjac=0, logu=0, ...){
 #' @param currsbm the current state of the sampler
 #' @param edges an \code{\link{edges}} object
 #' @param sbmmod an \code{\link{sbmmod}} model
-#' @param ... additional arguments for sbmod$marglike
-#' @return next state of the sbm object
+#' @param ... additional arguments for \code{sbmmod$marglike}
+#' @return next state of \code{currsbm} object
 #' @examples
 #' model <- sbmmod(multinom(2, 3), param_beta(1,1,1,1), edges_bern(), marglike=marglike_bern)
 #' trueSBM <- model$r(100)
@@ -121,7 +121,7 @@ sampler.conj <- function(currsbm, edges, sbmmod, ...){
 #' @param edges an \code{\link{edges}} object
 #' @param sbmmod an \code{\link{sbmmod}} model
 #' @param sigma random walk parameter for theta
-#' @return next state of the sbm object
+#' @return next state of \code{currsbm} object
 #' @examples
 #' model <- sbmmod(multinom(1, 3), param_beta(1,1,1,1), edges_bern())
 #' trueSBM <- model$r(100)
@@ -140,7 +140,7 @@ sampler.gibbs <- function(currsbm, edges, sbmmod, sigma){
 #' @param edges an \code{\link{edges}} object
 #' @param sbmmod an \code{\link{sbmmod}} model
 #' @param sigma random walk parameter for theta
-#' @return next state of the sbm object
+#' @return next state of \code{currsbm} object
 #' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
 #' @examples
 #' model <- sbmmod(crp(10), param_beta(1,1,1,1), edges_bern())
@@ -160,7 +160,7 @@ sampler.dp <- function(currsbm, edges, sbmmod, sigma){
 #' @param sbmmod an \code{\link{sbmmod}} model
 #' @param sigma random walk parameter for \code{theta}
 #' @param rho propensity to add a block
-#' @return next state of the sbm object
+#' @return next state of \code{currsbm} object
 #' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
 #' @examples
 #' model <- sbmmod(dma(1,10), param_beta(1,1,1,1), edges_bern())

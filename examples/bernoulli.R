@@ -30,3 +30,7 @@ PerfectSimulation(Edges, model, n_steps, sigma=sigma)
 ## compute gelman-rubin statistics
 set.seed(1)
 GelmanRubin(Edges, model, n_steps, sigma=sigma)
+
+load("./bern/rj_post_10000.RDa")
+tmp <- eval_plots(sampler_output, theta_index = 1:9)
+tmp$param_trace[[1]] + geom_hline(yintercept = true_params$theta0) + geom_hline(yintercept = true_params$thetak)

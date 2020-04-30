@@ -14,7 +14,7 @@ drawblocks.dp <- function(currsbm, edges, sbmmod){
 #' @title Draw block membership
 #' @description Draw block membership in a Dirichlet process sampler
 #' @details sample a new block assignment for i under a Dirichlet process.
-#' Care needs to be taken with singleton blocks to update the parameter model in currsbm.
+#' Care needs to be taken with singleton blocks to update the parameter model in \code{currsbm}.
 #' @param i node to update
 #' @param currsbm current \code{sbm} object
 #' @param edges an \code{\link{edges}} object

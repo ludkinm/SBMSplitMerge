@@ -102,7 +102,7 @@ image.edges <- plot.edges
 #' @param edgemod an \code{\link{edgemod}} object
 #' @param sym should the network be symmetric?
 #' @param loops should the network have self-loops?
-#' @param ... additional arguments passed to `edgemod$r`
+#' @param ... additional arguments passed to \code{edgemod$r}
 #' @return an \code{edges} object
 #' @export
 #' @examples

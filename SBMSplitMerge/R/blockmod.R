@@ -42,7 +42,7 @@ is.blockmod <- function(x, ...){
 }
 
 #' @title Multinomial block assignment
-#' @description A blockmod for Multinomial allocation
+#' @description A \code{\link{blockmod}} for Multinomial allocation
 #' @details This model posits that: for \code{i=1:n}
 #' \deqn{Z_i ~ Multinomial(omega)}
 #' where
@@ -93,7 +93,7 @@ multinom <- function(gamma, kappa){
 }
 
 #' @title Dirichlet Multinomial Allocation
-#' @description A blockmod for Dirichlet Multinomial Allocation (DMA)
+#' @description A \code{\link{blockmod}} for Dirichlet Multinomial Allocation (DMA)
 #' @details This model posits:
 #' \deqn{kappa-1 ~ Pois(delta)}
 #' \deqn{omega|kappa, gamma ~ Dirichlet(gamma)}
@@ -104,7 +104,7 @@ multinom <- function(gamma, kappa){
 #' @examples
 #' ## simulate from a DMA(2, 5) prior
 #' ## This models the `number of blocks-1` as Poisson(5)
-#' ## and block assignments as Multinomial-Dirichlet(2, 2, ...)
+#' ## and block assignments as Dirichlet-Multinomial(2, 2, ...)
 #' m <- dma(2, 5)
 #' print(m)
 #' m$r(10)
@@ -141,7 +141,7 @@ dma <- function(gamma, delta){
 }
 
 #' @title Chinese Restaurant Process
-#' @description A blockmod for the Chinese restaurant process (CRP)
+#' @description A \code{\link{blockmod}} for the Chinese restaurant process (CRP)
 #' @details The CRP posits that each node arrives in turn. The first node joins the first block. Each subsequent node starts a new block with probability `gamma` or joins an existing block proportional to the block size.
 #' @param gamma concentration parameter
 #' @return a block model representing a \code{CRP(gamma)} distribution

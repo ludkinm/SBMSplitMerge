@@ -1,6 +1,6 @@
 #' @title Metropolis updates by drawing parameters
 #' @description Simulate parameters for the given model with a Metropolis-Hastings step
-#' @details iterate through the parameters in currsbm and update.
+#' @details iterate through the parameters in \code{currsbm} and update.
 #' @param sbm current \code{\link{sbm}} object
 #' @param edges an \code{\link{edges}}
 #' @param sbmmod an \code{\link{sbmmod}}

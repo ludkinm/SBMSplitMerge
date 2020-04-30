@@ -1,7 +1,7 @@
 #' @title \code{params} S3 object
 #' @description make a \code{params} object from the between-block parameter \code{theta0} and a vector of within block parameters \code{thetak}
 #' @param theta0 between block parameters - a vector of length `dimension of theta`
-#' @param thetak within block parameters - a matrix with ncol=kappa and nrow=dimension of theta
+#' @param thetak within block parameters - a matrix with \code{ncol=kappa} and \code{nrow=dimension of theta}
 #' @return a \code{params} object
 #' @export
 #' @examples

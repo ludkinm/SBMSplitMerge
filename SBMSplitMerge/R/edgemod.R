@@ -4,7 +4,7 @@
 #' @param r function(p) - simulate an edge given a parameter p (optional)
 #' @param ... additional arguments to append to \code{edgemod} internal list
 #' @return an \code{edgemod} object
-#' @note the parameter for logd is an array of c(dimension of theta, dim(E)) eg from \code{\link{parammat}}
+#' @note the parameter for \code{logd} is an array of c(dimension of theta, dim(E)) e.g. from \code{\link{parammat}}
 #' @seealso \code{\link{edges_bern}} \code{\link{edges_pois}} \code{\link{edges_norm}}
 #' @export
 edgemod <- function(logd, r, ...){

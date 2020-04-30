@@ -61,11 +61,11 @@ encapsulates the join distribution for the number of blocks and assignment of no
 To provide a \code{blockmod} the following are needed: some input parameters gamma, log density for the block structure, a random method for the block structure, the conditional distribution of a single node assignment given the others and a boolean indicating if the number of blocks (kappa) is fixed.
 The package provides three pre-specified \code{blockmod}s:
 - ``multinom`` - fixed number of blocks with a multinomial assignment of nodes to blocks
-- ``crp`` - the chinese restaurant process
-- ``dma`` - dirichlet-multinomial allocation
+- ``crp`` - the Chinese restaurant process
+- ``dma`` - Dirichlet-Multinomial allocation
 
 We will use ``dma``, the first parameter (gamma) is the concentration parameter for a symmetric Dirichlet distribution and the second (delta) is the rate parameter for a Poisson.
-The 'number of blocks'-1 is modelled as a Poisson(delta) and the bloc assignments as DirichletMultinomial(gamma, K). [cf. the paper]
+The 'number of blocks'-1 is modelled as a Poisson(delta) and the block assignments as Dirichlet-Multinomial(gamma, K). [cf. the paper]
 ```{r}
 block_model <- dma(1, 10)
 ```
@@ -74,15 +74,13 @@ block_model <- dma(1, 10)
 Finally, the prior model on the parameters of the Weibull distribution is specified.
 This is the most involved component since it requires some functions to map the inputs to the real line.
 The components of a ``parammod`` are:
-- \code{alpha} - the parameters for the prior on \code{theta_0}
-- \code{beta}  - the parameters for the prior on \code{theta_k}
-- \code{rf} - a function like ``rf(n, p)`` where ``n`` is a number of variates to simulate ``p`` is a parameter
-- \code{df} - a function like ``df(x, p)`` where ``x`` is a variate and ``p`` is a parameter
-- \code{t} - a function mapping the support of the parameter to the real line
-- \code{invt} - a function mapping the real line to the support of the parameter
-- \code{loggradt} - the jacobian of t
+- \code{logd} - a ``function(p)`` where ``p`` is a ``params`` object gets the probability density of a ``params`` object,
+- \code{r} - a ``function(kappa)`` simulates a ``params`` object for ``kappa`` blocks,
+- \code{t} - a function mapping the support of the parameter to the real line,
+- \code{invt} - a function mapping the real line to the support of the parameter,
+- \code{loggradt} - the jacobian of t.
 
-For the Weibull example, $k$ and $\lambda$ must be positive. A reasonable prior is a Gamma distribution, which can be specified like so:
+For the Weibull example, $k$ and $\lambda$ must be positive. A reasonable prior for each is is a Gamma distribution, which can be specified like so:
 ```{r}
 param_model <- parammod(
 		function(params){
@@ -103,9 +101,9 @@ param_model <- parammod(
 		function(x){ -log(x[1])-log(x[2])}
 		)
 ```
-this prior says the $k$ and $\lambda$ are all Gamma(1,1) distributed.
+this prior says each $k$ and $\lambda$ are Gamma(1,1) distributed.
 
-We wrap all the model components up into a list:
+We wrap all the model components up into a ``sbmmod`` object:
 ```{r}
 model <- sbmmod(block_model, param_model, edge_model)
 ```
