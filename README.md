@@ -14,4 +14,4 @@ devtools::install_github("ludkinm/SBMSplitMerge", subdir="SBMSplitMerge", build_
 After installation, see the vignette for example usage:
 ```R
 vignette("Weibull-edges")
-``
+```
