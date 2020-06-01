@@ -19,8 +19,3 @@ list of ggplot objects (with descriptive names)
 \description{
 get a set of evaluation plots from MCMC samples
 }
-\examples{
-\dontrun{output <- sampler(...)}
-\dontrun{ps <- eval_plots(output)}
-\dontrun{ps$post_pairs}
-}

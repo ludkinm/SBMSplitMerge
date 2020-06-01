@@ -28,14 +28,20 @@ updateblock.blocks <- function(blocks, i, newblock){
 
 #' @title Update the block assignment of a node
 #' @description change the block assignment in an \code{sbm} object to a new block
-#' @param sbm an \code{\link{sbm}} object
+#' @param currsbm an \code{\link{sbm}} object
 #' @param newblock the new block for node i
 #' @param i the node to update
+#' @param model an \code{\link{sbmmod}} object
+#' @note If adding a new block, this draws from the prior
 #' @return new \code{sbm} object
-updateblock.sbm <- function(sbm, i, newblock){
-    sbm(
-        updateblock(sbm$blocks, i, newblock)
-       ,
-        sbm$params
-    )
+updateblock.sbm <- function(currsbm, i, newblock, model){
+    currkappa <- currsbm$blocks$kappa
+    newblocks <- updateblock(currsbm$blocks, i, newblock)
+    if(newblocks$kappa > currkappa){
+        newparams <- params(currsbm$params$theta0,
+                            rbind(currsbm$params$thetak, model$param$r(1)$thetak))
+    } else{
+        newparams <- currsbm$params
+    }
+    sbm(newblocks, newparams)
 }

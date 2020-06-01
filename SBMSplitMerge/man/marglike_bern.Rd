@@ -11,10 +11,10 @@ marglike_bern(znoi, ei, parammod)
 
 \item{ei}{edge-states incident to i}
 
-\item{parammod}{a \code{parammod} object}
+\item{parammod}{a \code{parammod} object representing the Bernoulli-Beta model}
 }
 \value{
-log-probability for each node
+log-probability of node i belonging to each block
 }
 \description{
 calculate the marginal likelihood for a node for samplers using conjugate models

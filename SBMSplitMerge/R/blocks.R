@@ -15,14 +15,17 @@ blocks <- function(z, kappa){
     if(missing(kappa))
         kappa <- nlevels(z)
     levels(z) <- 1:kappa
-    out <- list(
-        z = z,
-        kappa = kappa,
-        sizes = table(z),
-        numnodes = length(z)
+
+    structure(
+        list(
+            z = z,
+            kappa = kappa,
+            sizes = table(z),
+            numnodes = length(z)
+        )
+       ,
+        class = "blocks"
     )
-    class(out) <- c(class(out), "blocks")
-    out
 }
 
 #' @importFrom graphics image plot
@@ -63,11 +66,9 @@ plot.blocks <- function(x, col, xaxt='n', yaxt='n', xlab="Nodes", ylab="Nodes", 
 #' @export
 image.blocks <- plot.blocks
 
+#' @export
 print.blocks <- function(x, ...)
-    cat(format(x, ...), "\n")
-
-format.blocks <- function(blocks, ...)
-    c("blocks object\nkappa: ", blocks$kappa, "\nNumber of nodes: ", blocks$numnodes,"\nblock sizes: ", blocks$sizes)
-
-is.blocks <- function(x, ...)
-    inherits(x, "blocks")
+    cat("blocks object\nkappa: ", x$kappa,
+        "\nNumber of nodes: ", x$numnodes,
+        "\nblock sizes: ", x$sizes,
+        "\n")

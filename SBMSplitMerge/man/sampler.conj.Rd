@@ -4,7 +4,7 @@
 \alias{sampler.conj}
 \title{Conjugate model sampler}
 \usage{
-sampler.conj(currsbm, edges, sbmmod, ...)
+sampler.conj(currsbm, edges, sbmmod, sigma = NULL, ...)
 }
 \arguments{
 \item{currsbm}{the current state of the sampler}
@@ -12,6 +12,8 @@ sampler.conj(currsbm, edges, sbmmod, ...)
 \item{edges}{an \code{\link{edges}} object}
 
 \item{sbmmod}{an \code{\link{sbmmod}} model}
+
+\item{sigma}{unused}
 
 \item{...}{additional arguments for \code{sbmmod$marglike}}
 }
@@ -21,9 +23,12 @@ next state of \code{currsbm} object
 \description{
 Conjugate model sampler
 }
+\note{
+If using the CRP as the block model, then this is the IRM sampler of Schmidt or Morup (Schmidt, M.N. and Morup, M., 2013. Nonparametric Bayesian modeling of complex networks: An introduction. IEEE Signal Processing Magazine, 30(3), pp.110-128.)
+}
 \examples{
-model <- sbmmod(multinom(2, 3), param_beta(1,1,1,1), edges_bern(), marglike=marglike_bern)
+model <- sbmmod(crp(3), param_beta(1,1,1,1), edges_bern(), marglike=marglike_bern)
 trueSBM <- model$r(100)
 Edges <- redges(trueSBM, model$edge)
-\dontrun{out <- sampler(Edges, model, 100, "conjugate")}
+out <- sampler(Edges, model, 10, "conjugate")
 }

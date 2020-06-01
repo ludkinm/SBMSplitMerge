@@ -18,6 +18,5 @@ matrix dimension \code{n*k} of samples
 Draw from Dirichlet distribution
 }
 \examples{
-\dontrun{set.seed(1)}
 rdirichlet(1, rep(2,5)) ## a length-5 probability vector
 }

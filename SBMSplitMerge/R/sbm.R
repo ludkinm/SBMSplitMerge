@@ -9,23 +9,32 @@ sbm <- function(blocks, params){
     if(blocks$kappa != params$kappa)
         stop("Mis-matched number of blocks")
     colnames(params$thetak) <- names(blocks$n)
-    out <- list(
-        blocks = blocks
+    structure(
+        list(
+            blocks = blocks
+           ,
+            params = params
+           ,
+            numnodes = blocks$numnodes
+        )
        ,
-        params = params
-       ,
-        numnodes = blocks$numnodes
+        class = "sbm"
     )
-    class(out) <- c(class(out), "sbm")
-    out
 }
 
+#' @export
 print.sbm <- function(x,...){
     cat("SBM object with:\n")
     print(x$blocks)
     print(x$params)
 }
 
+
+#' @title is.sbm
+#' @description Logical check if an object is an \code{\link{sbm}} object
+#' @param x an R object
+#' @return Logical indicating if \code{x} is an \code{\link{sbm}} object
+#' @export
 is.sbm <- function(x){
     inherits(x, "sbm")
 }

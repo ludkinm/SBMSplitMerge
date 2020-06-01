@@ -20,5 +20,5 @@ drawblocks.gibbs <- function(currsbm, edges, sbmmod){
 drawblock.gibbs <- function(i, currsbm, edges, sbmmod){
     p <- sbmmod$block$dcond(currsbm$blocks, i) +
         nodelike(currsbm$blocks, currsbm$params, edges, i, sbmmod)[1:currsbm$blocks$kappa]
-    updateblock(currsbm, i, rcat(1, normaliselogs(p)))
+    updateblock(currsbm, i, rcat(1, normaliselogs(p)), sbmmod)
 }

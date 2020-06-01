@@ -15,17 +15,20 @@
 #' @seealso \code{\link{multinom}} \code{\link{dma}} \code{\link{crp}} \code{\link{blocks}}
 #' @export
 blockmod <- function(fixkappa, logd, dcond, r, ...){
-    out <- list(
-        fixkappa = fixkappa,
-        logd = logd,
-        dcond = dcond,
-        r = r,
-        ...
+    structure(
+        list(
+            fixkappa = fixkappa,
+            logd = logd,
+            dcond = dcond,
+            r = r,
+            ...
+        )
+       ,
+        class = "blockmod"
     )
-    class(out) <- c(class(out), "blockmod")
-    out
 }
 
+#' @export
 print.blockmod <- function(x, ...){
     cat("A blockmod object with ")
     if(x$fixkappa){
@@ -35,10 +38,6 @@ print.blockmod <- function(x, ...){
     }
     cat("and parameters:\n")
     print(x[-(1:4)])
-}
-
-is.blockmod <- function(x, ...){
-    inherits(x, "blockmod")
 }
 
 #' @title Multinomial block assignment

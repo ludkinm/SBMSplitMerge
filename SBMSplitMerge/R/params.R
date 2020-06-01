@@ -10,16 +10,22 @@
 params <- function(theta0, thetak){
     theta0 <- c(theta0)
     thetak <- as.matrix(thetak)
-    out <- list(
-        theta0 = theta0,
-        thetak = thetak,
-        dimtheta = ncol(thetak),
-        kappa = nrow(thetak)
+    structure(
+        list(
+            theta0 = theta0
+           ,
+            thetak = thetak
+           ,
+            dimtheta = ncol(thetak)
+           ,
+            kappa = nrow(thetak)
+        )
+       ,
+        class = "params"
     )
-    class(out) <- c(class(out), "params")
-    out
 }
 
+#' @export
 print.params <- function(x,...){
     cat("Params object\nkappa: ", x$kappa, "\ntheta0:")
     print(x$theta0)
@@ -27,9 +33,7 @@ print.params <- function(x,...){
     print(x$thetak)
 }
 
-is.params <- function(x)
-    inherits(x, "params")
-
+#' @export
 #' @importFrom graphics barplot
 plot.params <- function(x, xlab="Block", ylab="Value", beside=TRUE, ...){
     graphics::barplot(t(rbind(x$theta0, x$thetak)), beside=beside, xlab=xlab, ylab=ylab, ...)

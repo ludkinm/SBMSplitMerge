@@ -37,20 +37,8 @@ drawblock.dp <- function(i, currsbm, edges, sbmmod){
     if( propb != currb ){
         if( currsbm$blocks$sizes[currb] > 1 ){
             ## if not currently in a singleton block - then update the block assignment
-            b <- updateblock(currsbm$blocks, i, propb)
-            if(propb > currsbm$blocks$kappa){
-                ## the number of blocks increased:
-                ## draw a new parameter from the prior
-                p <- params(
-                    currsbm$params$theta0
-                   ,
-                    rbind(currsbm$params$thetak, sbmmod$param$r(1)$thetak)
-                )
-                currsbm <- sbm(b, p)
-            }  else{
-                currsbm <- sbm(b, currsbm$params)
-            }
-        } else{
+            currsbm <- updateblock(currsbm, i, propb, sbmmod)
+       } else{
             ## the current block is a singleton
             if( propb > currsbm$blocks$kappa ){
                 ## and the proposed block is a singleton:

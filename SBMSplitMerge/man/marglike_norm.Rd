@@ -14,7 +14,7 @@ marglike_norm(znoi, ei, parammod)
 \item{parammod}{a \code{parammod} object}
 }
 \value{
-log-probability for each node
+log-probability of node i belonging to each block
 }
 \description{
 calculate the marginal likelihood for a node for samplers using conjugate models

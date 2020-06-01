@@ -20,7 +20,6 @@ the density
 Density of Dirichlet distribution
 }
 \examples{
-\dontrun{set.seed(1)}
 g <- rep(2,5)
 p <- rdirichlet(1, g) ## a length-5 probability vector
 ddirichlet(p, g)

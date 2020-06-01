@@ -10,35 +10,34 @@
 #' @export
 #' @author Matthew Ludkin
 sbmmod <- function(blockmod, parammod, edgemod, ...){
-    out <- list(
-        logd = function(sbm, edges, ...){
-            dedges(sbm, edges, edgemod, ...) +
-                blockmod$logd(sbm$blocks) +
-                parammod$logd(sbm$params)
-        }
+    structure(
+        list(
+            logd = function(sbm, edges, ...){
+                dedges(sbm, edges, edgemod, ...) +
+                    blockmod$logd(sbm$blocks) +
+                    parammod$logd(sbm$params)
+            }
+           ,
+            r = function(n, sorted=FALSE){
+                b <- blockmod$r(n, sorted=sorted)
+                p <- parammod$r(b$kappa)
+                sbm(b, p)
+            }
+           ,
+            simedges = function(sbm, sym=TRUE, loops=FALSE){
+                redges(sbm, edgemod, sym=sym, loops=loops)
+            }
+           ,
+            block=blockmod, param=parammod, edge=edgemod
+           ,
+            ...
+        )
        ,
-        r = function(n, sorted=FALSE){
-            b <- blockmod$r(n, sorted=sorted)
-            p <- parammod$r(b$kappa)
-            sbm(b, p)
-        }
-       ,
-        simedges = function(sbm, sym=TRUE, loops=FALSE){
-            redges(sbm, edgemod, sym=sym, loops=loops)
-        }
-       ,
-        block=blockmod, param=parammod, edge=edgemod
-       ,
-        ...
+        class = "sbmmod"
     )
-    class(out) <- unique(c(class(out), "sbmmod"))
-    out
 }
 
-is.sbmmod <- function(x, ...){
-    inherits(x, "sbmmod")
-}
-
+#' @export
 print.sbmmod <- function(x, ...){
     cat("an sbmmod object with block model:")
     print(x$block)

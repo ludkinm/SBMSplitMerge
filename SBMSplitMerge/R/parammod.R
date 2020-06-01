@@ -18,25 +18,29 @@
 #' @seealso \code{\link{param_beta}} \code{\link{param_gamma}} \code{\link{param_nbin}} \code{\link{param_norm}}
 #' @export
 parammod <- function(logd, r, t, invt, loggradt, ...){
-    out <- list(
-        logd=logd,
-        r=r,
-        t = t,
-        invt = invt,
-        loggradt = loggradt,
-        ...
+    structure(
+        list(
+            logd=logd
+           ,
+            r=r
+           ,
+            t = t
+           ,
+            invt = invt
+           ,
+            loggradt = loggradt
+           ,
+            ...
+        )
+       ,
+        class = "parammod"
     )
-    class(out) <- unique(c(class(out), "parammod"))
-    out
 }
 
+#' @export
 print.parammod <- function(x, ...){
     cat("A parammod object with parameters:\n")
     print(x[-(1:5)])
-}
-
-is.parammod <- function(x, ...){
-    inherits(x, "parammod")
 }
 
 #' @importFrom stats dbeta rbeta

@@ -49,5 +49,5 @@ sampler(
 top level sampler function
 }
 \examples{
-## see vignette("Weibull edges")
+## see vignette("Weibull-edges")
 }

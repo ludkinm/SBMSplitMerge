@@ -14,7 +14,7 @@
 #' @return \code{nsteps} number of iterations of chain
 #' @return \code{algorithm} choice
 #' @examples
-#' ## see vignette("Weibull edges")
+#' ## see vignette("Weibull-edges")
 #' @export
 sampler <- function(edges, sbmmod, nSteps=1000, algorithm="rj",
                     sigma=0.5, statusfreq, currsbm, ...){
@@ -56,7 +56,7 @@ sampler <- function(edges, sbmmod, nSteps=1000, algorithm="rj",
     postn[1:currsbm$blocks$kappa,1] <- currsbm$blocks$sizes
 
     for(s in 2:nSteps){
-        currsbm <- step(currsbm, edges, sbmmod, sigma, ...)
+        currsbm <- step(currsbm, edges, sbmmod, sigma=sigma, ...)
         ## store
         postk[s] <- currsbm$blocks$kappa
         postl[s] <- sbmmod$logd(currsbm, edges)
@@ -95,23 +95,27 @@ accept <- function(currsbm, propsbm, edges, sbmmod, logjac=0, logu=0, ...){
 #' @param currsbm the current state of the sampler
 #' @param edges an \code{\link{edges}} object
 #' @param sbmmod an \code{\link{sbmmod}} model
+#' @param sigma unused
 #' @param ... additional arguments for \code{sbmmod$marglike}
 #' @return next state of \code{currsbm} object
+#' @note If using the CRP as the block model, then this is the IRM sampler of Schmidt or Morup (Schmidt, M.N. and Morup, M., 2013. Nonparametric Bayesian modeling of complex networks: An introduction. IEEE Signal Processing Magazine, 30(3), pp.110-128.)
 #' @examples
-#' model <- sbmmod(multinom(2, 3), param_beta(1,1,1,1), edges_bern(), marglike=marglike_bern)
+#' model <- sbmmod(crp(3), param_beta(1,1,1,1), edges_bern(), marglike=marglike_bern)
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
-#' out <- sampler(Edges, model, 100, "conjugate")
+#' out <- sampler(Edges, model, 10, "conjugate")
 #' @export
-sampler.conj <- function(currsbm, edges, sbmmod, ...){
+sampler.conj <- function(currsbm, edges, sbmmod, sigma=NULL, ...){
     for(i in 1:currsbm$numnodes){
         znoi <- blockmat(currsbm$blocks)[,-i,drop=FALSE]
-        ei   <- edges$edges[i,-i]
-        p <- sbmmod$marglike(znoi, ei, sbmmod$params, ...)
+        ei   <- edges$E[i,-i]
+        p <- sbmmod$marglike(znoi, ei, sbmmod$param, ...)
+        if(sbmmod$block$fixkappa)
+            p <- p[1:currsbm$blocks$kappa]
         q <- sbmmod$block$dcond(currsbm$blocks, i)
-        p <- normaliselogs(p)
+        p <- normaliselogs(p+q)
         newblock <- rcat(1,p)
-        currsbm <- updateblock.sbm(currsbm, i, newblock)
+        currsbm <- updateblock.sbm(currsbm, i, newblock, sbmmod)
     }
     currsbm
 }
@@ -122,14 +126,16 @@ sampler.conj <- function(currsbm, edges, sbmmod, ...){
 #' @param sbmmod an \code{\link{sbmmod}} model
 #' @param sigma random walk parameter for theta
 #' @return next state of \code{currsbm} object
+#' @note This requires a block model with a fixed kappa
 #' @examples
-#' model <- sbmmod(multinom(1, 3), param_beta(1,1,1,1), edges_bern())
-#' trueSBM <- model$r(100)
+#' model <- sbmmod(multinom(1, 3), param_gamma(1,1,1,1), edges_pois())
+#' trueSBM <- model$r(10)
 #' Edges <- redges(trueSBM, model$edge)
-#' gibbs_out <- sampler(Edges, model, algorithm="gibbs", 100, sigma=0.1)
+#' gibbs_out <- sampler(Edges, model, algorithm="gibbs", 10, sigma=0.1)
 #' eval_plots(gibbs_out)
 #' @export
-sampler.gibbs <- function(currsbm, edges, sbmmod, sigma){
+ sampler.gibbs <- function(currsbm, edges, sbmmod, sigma){
+    stopifnot(sbmmod$block$fixkappa)
     currsbm <- drawblocks.gibbs(currsbm, edges, sbmmod)
     currsbm <- drawparams(currsbm, edges, sbmmod, sigma)
     currsbm
@@ -143,10 +149,10 @@ sampler.gibbs <- function(currsbm, edges, sbmmod, sigma){
 #' @return next state of \code{currsbm} object
 #' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
 #' @examples
-#' model <- sbmmod(crp(10), param_beta(1,1,1,1), edges_bern())
+#' model <- sbmmod(crp(10), param_norm(0,0,1,1,0,0,1,1), edges_norm())
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
-#' dp_out <- sampler(Edges, model, 100, "dp", sigma=0.1)
+#' dp_out <- sampler(Edges, model, 10, "dp", sigma=0.1)
 #' @export
 sampler.dp <- function(currsbm, edges, sbmmod, sigma){
     currsbm <- drawblocks.dp(currsbm, edges, sbmmod)
@@ -163,10 +169,10 @@ sampler.dp <- function(currsbm, edges, sbmmod, sigma){
 #' @return next state of \code{currsbm} object
 #' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
 #' @examples
-#' model <- sbmmod(dma(1,10), param_beta(1,1,1,1), edges_bern())
+#' model <- sbmmod(dma(1,10), param_nbin(1,1,1,1,0.5,0.5,0.5,0.5), edges_nbin())
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
-#' rj_out <- sampler(Edges, model, 100, "rj", sigma=0.1)
+#' rj_out <- sampler(Edges, model, 10, "rj", sigma=0.1)
 #' @export
 sampler.rj <- function(currsbm, edges, sbmmod, sigma, rho=10){
     currsbm <- drawparams(currsbm, edges, sbmmod, sigma=sigma)

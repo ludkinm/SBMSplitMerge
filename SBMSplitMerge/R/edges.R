@@ -19,26 +19,26 @@ edges <- function(e, sym, loops, ...){
         sym <- all(e==t(e))
     if(missing(loops))
         loops <- !all(diag(e)==0)
-    out <- list(
-        E = e
+    structure(
+        list(
+            E = e
+           ,
+            numnodes = ncol(e)
+           ,
+            sym = sym
+           ,
+            loops = loops
+           ,
+            ...
+        )
        ,
-        numnodes = ncol(e)
-       ,
-        sym = sym
-       ,
-        loops = loops
-      ,
-        ...
+        class = "edges"
     )
-    class(out) <- append("edges", class(out))
-    out
 }
 
+#' @export
 print.edges <- function(x, ...)
     print(paste("edges object on", x$numnodes, "nodes"))
-
-is.edges <- function(x)
-    inherits(x,"edges")
 
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot .data geom_raster theme scale_alpha xlab ylab aes element_blank

@@ -11,16 +11,13 @@ edgemod <- function(logd, r, ...){
     out <- list(logd=logd, ...)
     if(!missing(r))
         out$r <- r
-    class(out) <- append(class(out), "edgemod")
+    class(out) <- "edgemod"
     out
 }
 
+#' @export
 print.edgemod <- function(x,...){
     cat("An edgemod object\n")
-}
-
-is.edgemod <- function(x, ...){
-    inherits(x, "edgemod")
 }
 
 #' @title Bernoulli edge model

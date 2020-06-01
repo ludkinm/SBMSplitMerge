@@ -2,8 +2,8 @@
 #' @title Marginal likelihood model for Bernoulli distributed edges
 #' @param znoi a matrix of block assignments without node i
 #' @param ei edge-states incident to i
-#' @param parammod a \code{parammod} object
-#' @return log-probability for each node
+#' @param parammod a \code{parammod} object representing the Bernoulli-Beta model
+#' @return log-probability of node i belonging to each block
 #' @export
 marglike_bern <- function(znoi, ei, parammod){
     ## block sizes
@@ -13,9 +13,11 @@ marglike_bern <- function(znoi, ei, parammod){
     if(!any(nk == 0))
         mk <- cbind(mk, 0)
     m0 <- c(sum(ei),sum(1-ei)) - mk
-    a0 <- parammod$alpha + m0
-    ak <- parammod$beta + mk
-    logp <- lbeta(ak[1,],ak[2,]) + lbeta(a0[1,],a0[2,])
+    a0 <- parammod$a0 + m0[1,]
+    a1 <- parammod$a1 + m0[2,]
+    b0 <- parammod$b0 + mk[1,]
+    b1 <- parammod$b1 + mk[2,]
+    logp <- lbeta(a0,a1) + lbeta(b0,b1)
     logp
 }
 
@@ -24,7 +26,7 @@ marglike_bern <- function(znoi, ei, parammod){
 #' @param znoi a matrix of block assignments without node i
 #' @param ei edge-states incident to i
 #' @param parammod a \code{parammod} object
-#' @return log-probability for each node
+#' @return log-probability of node i belonging to each block
 #' @export
 marglike_pois <- function(znoi, ei, parammod){
     ## block sizes
@@ -33,9 +35,11 @@ marglike_pois <- function(znoi, ei, parammod){
     if(!any(nk == 0))
         mk <- cbind(mk, 0)
     m0 <- rowSums(mk) - mk
-    a0 <- parammod$alpha + m0
-    ak <- parammod$beta + mk
-    logp <- lgamma(ak[1,]) - ak[1,] * log(ak[2,]) + lgamma(a0[1,]) - a0[1,] * log(a0[2,])
+    a0 <- parammod$a0 + m0[1,]
+    a1 <- parammod$a1 + m0[2,]
+    b0 <- parammod$b0 + mk[1,]
+    b1 <- parammod$b1 + mk[2,]
+    logp <- lgamma(b0) - b0 * log(b1) + lgamma(a0) - a0 * log(a1)
     logp
 }
 
@@ -44,17 +48,17 @@ marglike_pois <- function(znoi, ei, parammod){
 #' @param znoi a matrix of block assignments without node i
 #' @param ei edge-states incident to i
 #' @param parammod a \code{parammod} object
-#' @return log-probability for each node
+#' @return log-probability of node i belonging to each block
 #' @export
 marglike_norm <- function(znoi, ei, parammod){
-    rho0 <- parammod$alpha[1]
-    nu0  <- parammod$alpha[2]
-    be0  <- parammod$alpha[3]
-    al0  <- parammod$alpha[4]
-    rhok <- parammod$beta[1]
-    nuk  <- parammod$beta[2]
-    bek  <- parammod$beta[3]
-    alk  <- parammod$beta[4]
+    rho0 <- parammod$a0
+    nu0  <- parammod$b0
+    be0  <- parammod$c0
+    al0  <- parammod$d0
+    rhok <- parammod$a1
+    nuk  <- parammod$b1
+    bek  <- parammod$c1
+    alk  <- parammod$d1
     nk   <- rowSums(znoi)
     mk   <- c(ei %*% t(znoi))
     ssk  <- c(ei^2 %*% t(znoi))

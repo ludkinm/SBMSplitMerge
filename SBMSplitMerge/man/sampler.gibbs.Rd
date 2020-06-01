@@ -21,10 +21,13 @@ next state of \code{currsbm} object
 \description{
 Gibbs sampling for node assignments
 }
+\note{
+This requires a block model with a fixed kappa
+}
 \examples{
-model <- sbmmod(multinom(1, 3), param_beta(1,1,1,1), edges_bern())
-trueSBM <- model$r(100)
+model <- sbmmod(multinom(1, 3), param_gamma(1,1,1,1), edges_pois())
+trueSBM <- model$r(10)
 Edges <- redges(trueSBM, model$edge)
-\dontrun{gibbs_out <- sampler(Edges, model, algorithm="gibbs", 100, sigma=0.1)}
-\dontrun{eval_plots(gibbs_out)}
+gibbs_out <- sampler(Edges, model, algorithm="gibbs", 10, sigma=0.1)
+eval_plots(gibbs_out)
 }
