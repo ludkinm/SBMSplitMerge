@@ -22,10 +22,10 @@ next state of \code{currsbm} object
 Dirichlet process sampler
 }
 \examples{
-model <- sbmmod(crp(10), param_norm(0,0,1,1,0,0,1,1), edges_norm())
+model <- sbmmod(crp(4), param_norm(0,0,1,1,3,3,1,1), edges_norm())
 trueSBM <- model$r(100)
 Edges <- redges(trueSBM, model$edge)
-dp_out <- sampler(Edges, model, 10, "dp", sigma=0.1)
+dp_out <- sampler(Edges, model, 25, "dp", sigma=0.1)
 }
 \seealso{
 For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}

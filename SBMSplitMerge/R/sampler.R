@@ -149,10 +149,10 @@ sampler.conj <- function(currsbm, edges, sbmmod, sigma=NULL, ...){
 #' @return next state of \code{currsbm} object
 #' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
 #' @examples
-#' model <- sbmmod(crp(10), param_norm(0,0,1,1,0,0,1,1), edges_norm())
+#' model <- sbmmod(crp(4), param_norm(0,0,1,1,3,3,1,1), edges_norm())
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
-#' dp_out <- sampler(Edges, model, 10, "dp", sigma=0.1)
+#' dp_out <- sampler(Edges, model, 25, "dp", sigma=0.1)
 #' @export
 sampler.dp <- function(currsbm, edges, sbmmod, sigma){
     currsbm <- drawblocks.dp(currsbm, edges, sbmmod)
@@ -169,7 +169,7 @@ sampler.dp <- function(currsbm, edges, sbmmod, sigma){
 #' @return next state of \code{currsbm} object
 #' @seealso For full algorithm details see \url{http://doi.org/10.17635/lancaster/thesis/296}
 #' @examples
-#' model <- sbmmod(dma(1,10), param_nbin(1,1,1,1,0.5,0.5,0.5,0.5), edges_nbin())
+#' model <- sbmmod(dma(1,10), param_nbin(1,1,4,4,0.5,0.5,0.5,0.5), edges_nbin())
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
 #' rj_out <- sampler(Edges, model, 10, "rj", sigma=0.1)

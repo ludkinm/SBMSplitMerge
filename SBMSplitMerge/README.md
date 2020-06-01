@@ -4,7 +4,7 @@ This allows for inference in non-conjugate edge-state models in a Bayesian frame
 
 This package accompanies the paper [ArXiV https://arxiv.org/abs/1909.09421](https://arxiv.org/abs/1909.09421).
 
-The git repository stores this package as well as the examples and data examples available on github: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3407683.svg)](https://doi.org/10.5281/zenodo.3407683)
+The git repository stores this package as well as the examples and data examples available on github: [![DOI](man/figures/zenodo.3407683.svg)](https://doi.org/10.5281/zenodo.3407683)
 
 # Getting the package
 install.packages("SBMSplitMerge")

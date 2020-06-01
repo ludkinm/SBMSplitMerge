@@ -24,7 +24,7 @@ next state of \code{currsbm} object
 reversible jump Markov chain Monte Carlo split-merge sampler
 }
 \examples{
-model <- sbmmod(dma(1,10), param_nbin(1,1,1,1,0.5,0.5,0.5,0.5), edges_nbin())
+model <- sbmmod(dma(1,10), param_nbin(1,1,4,4,0.5,0.5,0.5,0.5), edges_nbin())
 trueSBM <- model$r(100)
 Edges <- redges(trueSBM, model$edge)
 rj_out <- sampler(Edges, model, 10, "rj", sigma=0.1)
