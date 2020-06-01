@@ -11,6 +11,9 @@ splitparams(x, ...)
 
 \item{...}{additional arguments for method}
 }
+\value{
+\code{list(proposed_params, log-acceptance-prob)}
+}
 \description{
 split move: parameters
 }

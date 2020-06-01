@@ -164,6 +164,7 @@ splitblocks <- function(currblocks, propparams, edges, sbmmod, k){
 #' split move: parameters
 #' @param x object for dispatch
 #' @param ... additional arguments for method
+#' @return \code{list(proposed_params, log-acceptance-prob)}
 splitparams <- function(x, ...)
     UseMethod("splitparams", x)
 

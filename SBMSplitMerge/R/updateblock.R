@@ -2,6 +2,7 @@
 #' @description change the block assignment in \code{x} of a node to a new block
 #' @param x object for dispatch
 #' @param ... additional arguments for method
+#' @return object like `x` with updated block structure
 #' @seealso \code{\link{updateblock.blocks}} \code{\link{updateblock.sbm}}
 updateblock <- function(x, ...){
     UseMethod("updateblock")

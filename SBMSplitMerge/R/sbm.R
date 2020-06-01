@@ -36,6 +36,7 @@ is.sbm <- function(x){
 #' @param x an \code{\link{sbm}} object
 #' @param col colours for each block - if missing, \code{rainbow} is used
 #' @param ... additional arguments for plot
+#' @return NULL
 #' @seealso plot.default
 #' @export
 plot.sbm <- function(x, col, ...){

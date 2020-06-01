@@ -12,7 +12,7 @@ blocktrace(postz, burnin)
 \item{burnin}{which iterations to plot? defaults to all.}
 }
 \value{
-ggplot object of node assignments against iteration number
+`ggplot2` object
 }
 \description{
 plot a trace of the blocks from MCMC samples

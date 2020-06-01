@@ -8,7 +8,6 @@
 #' @export
 #' @examples
 #' ## make an sbm model, sample data then plot and print:
-#' \dontrun{set.seed(1)}
 #' model <- sbmmod(dma(2,5), param_beta(1,1,1,1), edges_bern())
 #' s <- model$r(100)
 #' e <- redges(s, model$edge)
@@ -55,7 +54,6 @@ is.edges <- function(x)
 #' @export
 #' @examples
 #' ## make an sbm model, sample data then plot and print:
-#' \dontrun{set.seed(1)}
 #' model <- sbmmod(dma(2,5), param_beta(1,1,1,1), edges_bern())
 #' s <- model$r(100)
 #' e <- redges(s, model$edge)
@@ -107,7 +105,6 @@ image.edges <- plot.edges
 #' @export
 #' @examples
 #' ## make an sbm model, sample data then plot and print:
-#' \dontrun{set.seed(1)}
 #' model <- sbmmod(dma(2,5), param_beta(1,1,1,1), edges_bern())
 #' s <- model$r(100)
 #' e <- redges(s, model$edge)
@@ -150,7 +147,6 @@ dedges <- function(x, edges, edgemod, na.rm=TRUE, ...)
 #' @export
 #' @examples
 #' ## make an sbm model, sample data then plot and print:
-#' \dontrun{set.seed(1)}
 #' model <- sbmmod(dma(2,5), param_beta(1,1,1,1), edges_bern())
 #' s <- model$r(100)
 #' e <- redges(s, model$edge)

@@ -11,6 +11,9 @@ blockmat(x, ...)
 
 \item{...}{additional arguments for method}
 }
+\value{
+matrix of block assignment indicators
+}
 \description{
 converts \code{x} to a matrix of block assignments
 }

@@ -14,7 +14,7 @@ paramtrace(theta, range, burnin)
 \item{burnin}{which iterations to plot? defaults to all.}
 }
 \value{
-ggplot object of theta value against iteration number
+`ggplot2` object
 }
 \description{
 plot a trace of parameter values from MCMC samples

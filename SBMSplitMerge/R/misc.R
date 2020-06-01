@@ -13,7 +13,6 @@ xlogx <- function(x)
 #' @param gam a vector of concentration parameters of length \code{K}
 #' @return matrix dimension \code{n*k} of samples
 #' @examples
-#' \dontrun{set.seed(1)}
 #' rdirichlet(1, rep(2,5)) ## a length-5 probability vector
 #' @export
 rdirichlet <- function (n, gam) {
@@ -30,7 +29,6 @@ rdirichlet <- function (n, gam) {
 #' @param log return the log-probability instead?
 #' @return the density
 #' @examples
-#' \dontrun{set.seed(1)}
 #' g <- rep(2,5)
 #' p <- rdirichlet(1, g) ## a length-5 probability vector
 #' ddirichlet(p, g)

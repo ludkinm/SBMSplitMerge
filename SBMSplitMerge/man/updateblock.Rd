@@ -11,6 +11,9 @@ updateblock(x, ...)
 
 \item{...}{additional arguments for method}
 }
+\value{
+object like `x` with updated block structure
+}
 \description{
 change the block assignment in \code{x} of a node to a new block
 }

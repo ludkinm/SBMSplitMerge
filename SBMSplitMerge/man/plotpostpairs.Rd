@@ -9,6 +9,9 @@ plotpostpairs(mat)
 \arguments{
 \item{mat}{matrix to plot as an image using ggplot2}
 }
+\value{
+`ggplot2` plot objecy
+}
 \description{
 helper function for trace plots
 }

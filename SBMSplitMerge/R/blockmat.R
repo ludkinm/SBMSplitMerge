@@ -2,6 +2,7 @@
 #' @description converts \code{x} to a matrix of block assignments
 #' @param x object for dispatch
 #' @param ... additional arguments for method
+#' @return matrix of block assignment indicators
 #' @seealso \code{\link{blockmat.sbm}} \code{\link{blockmat.blocks}} \code{\link{blockmat.numeric}}
 blockmat <- function(x, ...)
     UseMethod("blockmat", x)

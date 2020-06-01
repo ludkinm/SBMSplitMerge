@@ -2,6 +2,7 @@
 #' @importFrom reshape2 melt
 #' @importFrom ggplot2 ggplot aes geom_raster theme scale_x_continuous scale_y_continuous element_blank .data
 #' @param mat matrix to plot as an image using ggplot2
+#' @return `ggplot2` plot objecy
 plotpostpairs <- function(mat){
     df <- reshape2::melt(mat)
     a <- ggplot2::aes(.data$Var2, .data$Var1, fill=.data$value)
@@ -17,7 +18,7 @@ plotpostpairs <- function(mat){
 #' @importFrom ggplot2 xlab ylab scale_fill_discrete
 #' @param postz output from sampler
 #' @param burnin which iterations to plot? defaults to all.
-#' @return ggplot object of node assignments against iteration number
+#' @return `ggplot2` object
 #' @export
 blocktrace <- function(postz, burnin){
     df <- reshape2::melt(postz[,burnin])
@@ -37,7 +38,7 @@ blocktrace <- function(postz, burnin){
 #' @importFrom ggplot2 ggplot aes geom_line
 #' @param postk output from sampler
 #' @param burnin which iterations to plot? defaults to all.
-#' @return ggplot object of kappa against iteration number
+#' @return `ggplot2` object
 #' @export
 numblockstrace <- function(postk, burnin){
     ggplot2::ggplot(data=data.frame(Iteration=burnin, K=postk[burnin]), ggplot2::aes(x=.data$Iteration, y=.data$K)) + ggplot2::geom_line()
@@ -50,7 +51,7 @@ numblockstrace <- function(postk, burnin){
 #' @param theta output from sampler
 #' @param range which thetas to plot? defaults to all.
 #' @param burnin which iterations to plot? defaults to all.
-#' @return ggplot object of theta value against iteration number
+#' @return `ggplot2` object
 #' @export
 paramtrace <- function(theta, range, burnin){
     if(missing(range))
@@ -99,10 +100,6 @@ modeblocks <- function(postz)
 #' @param burnin burn-in period (a vector of iteration numbers to subset outputs)
 #' @param theta_index which set of thetas to plot?
 #' @return list of ggplot objects (with descriptive names)
-#' @examples
-#' \dontrun{output <- sampler(...)}
-#' \dontrun{ps <- eval_plots(output)}
-#' \dontrun{ps$post_pairs}
 eval_plots <- function(output, burnin, theta_index){
     if(missing(burnin))
         burnin <- 1:output$nsteps

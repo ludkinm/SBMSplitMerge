@@ -37,6 +37,7 @@ blocks <- function(z, kappa){
 #' @param xlab override \code{image} parameters
 #' @param ylab override \code{image} parameters
 #' @param ... additional parameters for \code{image}
+#' @return NULL
 #' @examples
 #' ## Assign six nodes to four blocks:
 #' b <- blocks(c(1,1,2,3,4,4), 4)

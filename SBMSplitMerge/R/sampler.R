@@ -101,7 +101,7 @@ accept <- function(currsbm, propsbm, edges, sbmmod, logjac=0, logu=0, ...){
 #' model <- sbmmod(multinom(2, 3), param_beta(1,1,1,1), edges_bern(), marglike=marglike_bern)
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
-#' \dontrun{out <- sampler(Edges, model, 100, "conjugate")}
+#' out <- sampler(Edges, model, 100, "conjugate")
 #' @export
 sampler.conj <- function(currsbm, edges, sbmmod, ...){
     for(i in 1:currsbm$numnodes){
@@ -126,8 +126,8 @@ sampler.conj <- function(currsbm, edges, sbmmod, ...){
 #' model <- sbmmod(multinom(1, 3), param_beta(1,1,1,1), edges_bern())
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
-#' \dontrun{gibbs_out <- sampler(Edges, model, algorithm="gibbs", 100, sigma=0.1)}
-#' \dontrun{eval_plots(gibbs_out)}
+#' gibbs_out <- sampler(Edges, model, algorithm="gibbs", 100, sigma=0.1)
+#' eval_plots(gibbs_out)
 #' @export
 sampler.gibbs <- function(currsbm, edges, sbmmod, sigma){
     currsbm <- drawblocks.gibbs(currsbm, edges, sbmmod)
@@ -146,7 +146,7 @@ sampler.gibbs <- function(currsbm, edges, sbmmod, sigma){
 #' model <- sbmmod(crp(10), param_beta(1,1,1,1), edges_bern())
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
-#' \dontrun{dp_out <- sampler(Edges, model, 100, "dp", sigma=0.1)}
+#' dp_out <- sampler(Edges, model, 100, "dp", sigma=0.1)
 #' @export
 sampler.dp <- function(currsbm, edges, sbmmod, sigma){
     currsbm <- drawblocks.dp(currsbm, edges, sbmmod)
@@ -166,7 +166,7 @@ sampler.dp <- function(currsbm, edges, sbmmod, sigma){
 #' model <- sbmmod(dma(1,10), param_beta(1,1,1,1), edges_bern())
 #' trueSBM <- model$r(100)
 #' Edges <- redges(trueSBM, model$edge)
-#' \dontrun{rj_out <- sampler(Edges, model, 100, "rj", sigma=0.1)}
+#' rj_out <- sampler(Edges, model, 100, "rj", sigma=0.1)
 #' @export
 sampler.rj <- function(currsbm, edges, sbmmod, sigma, rho=10){
     currsbm <- drawparams(currsbm, edges, sbmmod, sigma=sigma)

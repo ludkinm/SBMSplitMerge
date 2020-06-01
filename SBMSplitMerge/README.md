@@ -45,5 +45,5 @@ this will plot the traces of the above variables and a posterior probability tha
 
 For details on setting the model up see the accompanying vignette for a negative binomial model:
 ```R
-vignette("Weibull edges")
+vignette("Weibull-edges")
 ```
